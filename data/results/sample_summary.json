@@ -1,0 +1,274 @@
+[
+  {
+    "review_id": "CD001234",
+    "outcome_label": "All-cause mortality",
+    "inferred_effect_type": "RR",
+    "study_level": {
+      "total_studies": 12,
+      "n_with_pdf": 10,
+      "matched_strict": 8,
+      "matched_moderate": 9,
+      "match_rate_strict": 0.8,
+      "match_rate_moderate": 0.9,
+      "no_pdf": 2,
+      "extraction_failed": 0,
+      "extracted_no_match": 1,
+      "n_extracted": 10
+    },
+    "review_level": {
+      "tier": "reproduced",
+      "pct_difference": 0.02,
+      "same_direction": true,
+      "same_significance": true,
+      "reference_k": 12,
+      "reproduced_k": 9,
+      "k_coverage": 0.75
+    },
+    "reference_pooled": {"pooled": 0.85, "se": 0.07, "k": 12, "tau2": 0.005, "i2": 12.4},
+    "reproduced_pooled": {"pooled": 0.84, "se": 0.08, "k": 9, "tau2": 0.004, "i2": 10.1},
+    "errors": {
+      "missing_pdf": 2,
+      "extraction_failure": 0,
+      "no_match": 1,
+      "success": 9,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD001234", "classification": "reproduced"}
+  },
+  {
+    "review_id": "CD002345",
+    "outcome_label": "Cardiovascular events",
+    "inferred_effect_type": "OR",
+    "study_level": {
+      "total_studies": 8,
+      "n_with_pdf": 7,
+      "matched_strict": 6,
+      "matched_moderate": 7,
+      "match_rate_strict": 0.857,
+      "match_rate_moderate": 1.0,
+      "no_pdf": 1,
+      "extraction_failed": 0,
+      "extracted_no_match": 0,
+      "n_extracted": 7
+    },
+    "review_level": {
+      "tier": "reproduced",
+      "pct_difference": 0.01,
+      "same_direction": true,
+      "same_significance": true,
+      "reference_k": 8,
+      "reproduced_k": 7,
+      "k_coverage": 0.875
+    },
+    "reference_pooled": {"pooled": 1.32, "se": 0.15, "k": 8, "tau2": 0.02, "i2": 35.2},
+    "reproduced_pooled": {"pooled": 1.33, "se": 0.16, "k": 7, "tau2": 0.018, "i2": 30.5},
+    "errors": {
+      "missing_pdf": 1,
+      "extraction_failure": 0,
+      "no_match": 0,
+      "success": 7,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD002345", "classification": "reproduced"}
+  },
+  {
+    "review_id": "CD003456",
+    "outcome_label": "Blood pressure reduction",
+    "inferred_effect_type": "MD",
+    "study_level": {
+      "total_studies": 15,
+      "n_with_pdf": 10,
+      "matched_strict": 7,
+      "matched_moderate": 8,
+      "match_rate_strict": 0.7,
+      "match_rate_moderate": 0.8,
+      "no_pdf": 5,
+      "extraction_failed": 1,
+      "extracted_no_match": 1,
+      "n_extracted": 9
+    },
+    "review_level": {
+      "tier": "minor_discrepancy",
+      "pct_difference": 0.08,
+      "same_direction": true,
+      "same_significance": true,
+      "reference_k": 15,
+      "reproduced_k": 8,
+      "k_coverage": 0.533
+    },
+    "reference_pooled": {"pooled": -5.20, "se": 1.10, "k": 15, "tau2": 3.5, "i2": 62.1},
+    "reproduced_pooled": {"pooled": -4.78, "se": 1.25, "k": 8, "tau2": 2.8, "i2": 55.3},
+    "errors": {
+      "missing_pdf": 5,
+      "extraction_failure": 1,
+      "no_match": 1,
+      "success": 8,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD003456", "classification": "minor_discrepancy"}
+  },
+  {
+    "review_id": "CD004567",
+    "outcome_label": "Hospital readmission",
+    "inferred_effect_type": "RR",
+    "study_level": {
+      "total_studies": 6,
+      "n_with_pdf": 5,
+      "matched_strict": 3,
+      "matched_moderate": 4,
+      "match_rate_strict": 0.6,
+      "match_rate_moderate": 0.8,
+      "no_pdf": 1,
+      "extraction_failed": 0,
+      "extracted_no_match": 1,
+      "n_extracted": 5
+    },
+    "review_level": {
+      "tier": "minor_discrepancy",
+      "pct_difference": 0.06,
+      "same_direction": true,
+      "same_significance": false,
+      "reference_k": 6,
+      "reproduced_k": 4,
+      "k_coverage": 0.667
+    },
+    "reference_pooled": {"pooled": 0.78, "se": 0.12, "k": 6, "tau2": 0.01, "i2": 18.7},
+    "reproduced_pooled": {"pooled": 0.83, "se": 0.14, "k": 4, "tau2": 0.008, "i2": 12.0},
+    "errors": {
+      "missing_pdf": 1,
+      "extraction_failure": 0,
+      "no_match": 1,
+      "success": 4,
+      "primary_error_source": "no_match"
+    },
+    "cert": {"review_id": "CD004567", "classification": "minor_discrepancy"}
+  },
+  {
+    "review_id": "CD005678",
+    "outcome_label": "Pain score (VAS)",
+    "inferred_effect_type": "MD",
+    "study_level": {
+      "total_studies": 20,
+      "n_with_pdf": 12,
+      "matched_strict": 5,
+      "matched_moderate": 7,
+      "match_rate_strict": 0.417,
+      "match_rate_moderate": 0.583,
+      "no_pdf": 8,
+      "extraction_failed": 2,
+      "extracted_no_match": 3,
+      "n_extracted": 10
+    },
+    "review_level": {
+      "tier": "major_discrepancy",
+      "pct_difference": 0.35,
+      "same_direction": true,
+      "same_significance": false,
+      "reference_k": 20,
+      "reproduced_k": 7,
+      "k_coverage": 0.35
+    },
+    "reference_pooled": {"pooled": -1.80, "se": 0.40, "k": 20, "tau2": 2.1, "i2": 78.5},
+    "reproduced_pooled": {"pooled": -1.17, "se": 0.55, "k": 7, "tau2": 1.5, "i2": 65.2},
+    "errors": {
+      "missing_pdf": 8,
+      "extraction_failure": 2,
+      "no_match": 3,
+      "success": 7,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD005678", "classification": "major_discrepancy"}
+  },
+  {
+    "review_id": "CD006789",
+    "outcome_label": "Adverse events",
+    "inferred_effect_type": "OR",
+    "study_level": {
+      "total_studies": 10,
+      "n_with_pdf": 6,
+      "matched_strict": 2,
+      "matched_moderate": 3,
+      "match_rate_strict": 0.333,
+      "match_rate_moderate": 0.5,
+      "no_pdf": 4,
+      "extraction_failed": 1,
+      "extracted_no_match": 2,
+      "n_extracted": 5
+    },
+    "review_level": {
+      "tier": "major_discrepancy",
+      "pct_difference": 0.52,
+      "same_direction": false,
+      "same_significance": false,
+      "reference_k": 10,
+      "reproduced_k": 3,
+      "k_coverage": 0.3
+    },
+    "reference_pooled": {"pooled": 1.15, "se": 0.20, "k": 10, "tau2": 0.08, "i2": 45.0},
+    "reproduced_pooled": {"pooled": 0.55, "se": 0.30, "k": 3, "tau2": 0.05, "i2": 28.3},
+    "errors": {
+      "missing_pdf": 4,
+      "extraction_failure": 1,
+      "no_match": 2,
+      "success": 3,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD006789", "classification": "major_discrepancy"}
+  },
+  {
+    "review_id": "CD007890",
+    "outcome_label": "Infection rate",
+    "inferred_effect_type": "RR",
+    "study_level": {
+      "total_studies": 5,
+      "n_with_pdf": 1,
+      "matched_strict": 0,
+      "matched_moderate": 1,
+      "match_rate_strict": 0.0,
+      "match_rate_moderate": 1.0,
+      "no_pdf": 4,
+      "extraction_failed": 0,
+      "extracted_no_match": 0,
+      "n_extracted": 1
+    },
+    "review_level": null,
+    "reference_pooled": {"pooled": 0.65, "se": 0.18, "k": 5, "tau2": 0.03, "i2": 40.0},
+    "reproduced_pooled": null,
+    "errors": {
+      "missing_pdf": 4,
+      "extraction_failure": 0,
+      "no_match": 0,
+      "success": 1,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD007890", "classification": "insufficient"}
+  },
+  {
+    "review_id": "CD008901",
+    "outcome_label": "Quality of life (SF-36)",
+    "inferred_effect_type": "MD",
+    "study_level": {
+      "total_studies": 9,
+      "n_with_pdf": 2,
+      "matched_strict": 1,
+      "matched_moderate": 1,
+      "match_rate_strict": 0.5,
+      "match_rate_moderate": 0.5,
+      "no_pdf": 7,
+      "extraction_failed": 1,
+      "extracted_no_match": 0,
+      "n_extracted": 1
+    },
+    "review_level": null,
+    "reference_pooled": {"pooled": 3.40, "se": 1.50, "k": 9, "tau2": 5.2, "i2": 70.0},
+    "reproduced_pooled": null,
+    "errors": {
+      "missing_pdf": 7,
+      "extraction_failure": 1,
+      "no_match": 0,
+      "success": 1,
+      "primary_error_source": "missing_pdf"
+    },
+    "cert": {"review_id": "CD008901", "classification": "insufficient"}
+  }
+]
