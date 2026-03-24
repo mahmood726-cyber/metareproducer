@@ -138,7 +138,7 @@ def fetch_raw_outcomes(conn, nct_ids: list[str]) -> dict[str, list[dict]]:
 
     Returns {nct_id: [{outcome_title, group_title, group_description,
                        ctgov_group_code, param_type, param_value,
-                       dispersion_value, count}]}.
+                       dispersion_value}]}.
     """
     if not nct_ids:
         return {}
@@ -147,8 +147,7 @@ def fetch_raw_outcomes(conn, nct_ids: list[str]) -> dict[str, list[dict]]:
         SELECT om.nct_id, o.title AS outcome_title,
                rg.title AS group_title, rg.description AS group_desc,
                rg.ctgov_group_code,
-               om.param_type, om.param_value_num, om.dispersion_value_num,
-               om.count_value
+               om.param_type, om.param_value_num, om.dispersion_value_num
         FROM ctgov.outcome_measurements om
         JOIN ctgov.outcomes o
             ON om.outcome_id = o.id AND om.nct_id = o.nct_id
@@ -169,7 +168,6 @@ def fetch_raw_outcomes(conn, nct_ids: list[str]) -> dict[str, list[dict]]:
             "param_type": row[5] or "",
             "param_value": float(row[6]) if row[6] is not None else None,
             "dispersion_value": float(row[7]) if row[7] is not None else None,
-            "count": int(row[8]) if row[8] is not None else None,
         })
     cur.close()
     return results
