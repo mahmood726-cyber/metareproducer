@@ -151,68 +151,6 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.scope-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 24px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  flex-wrap: wrap;
-}
-
-.scope-toolbar[hidden] { display: none; }
-
-.scope-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.scope-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.scope-segmented {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  box-shadow: var(--shadow);
-}
-
-.scope-btn {
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 8px 14px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.scope-btn:hover { color: var(--text-primary); }
-.scope-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
-.scope-btn[aria-pressed="true"] {
-  background: #3b82f6;
-  color: #ffffff;
-}
-
-.scope-summary {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
 .tab-btn {
   padding: 12px 20px;
   border: none;
@@ -312,27 +250,6 @@ body {
 .tier-badge.minor_discrepancy { background: var(--tier-minor-bg); color: var(--tier-minor); }
 .tier-badge.major_discrepancy { background: var(--tier-major-bg); color: var(--tier-major); }
 .tier-badge.insufficient { background: var(--tier-insufficient-bg); color: var(--tier-insufficient); }
-
-.scope-pill {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  vertical-align: middle;
-}
-
-.scope-pill.primary {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.scope-pill.secondary {
-  background: var(--tier-insufficient-bg);
-  color: var(--text-secondary);
-}
 
 /* ===================== Explorer Table ===================== */
 .table-controls {
@@ -489,11 +406,10 @@ tbody td {
 
 /* ===================== Print ===================== */
 @media print {
-  .app-header, .tab-nav, .scope-toolbar { position: static !important; }
+  .app-header, .tab-nav { position: static !important; }
   .btn, .file-input-wrapper, #themeToggle, #csvExport { display: none !important; }
   .panel { display: block !important; page-break-inside: avoid; }
   .tab-nav { display: none !important; }
-  .scope-toolbar { display: none !important; }
   body { background: #fff; color: #000; }
   .card { box-shadow: none; border: 1px solid #ccc; }
 }
@@ -502,7 +418,6 @@ tbody td {
 @media (max-width: 768px) {
   .app-header { padding: 12px 16px; }
   .app-header h1 { font-size: 1.05rem; }
-  .scope-toolbar { padding: 12px 16px; }
   .panel { padding: 16px; }
   .chart-row { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
@@ -511,8 +426,6 @@ tbody td {
 
 @media (max-width: 480px) {
   .header-controls { width: 100%; justify-content: flex-end; }
-  .scope-toolbar { align-items: flex-start; }
-  .scope-summary { width: 100%; }
   .stats-grid { grid-template-columns: 1fr; }
 }
 </style>
@@ -547,17 +460,6 @@ tbody td {
   <button class="tab-btn" role="tab" data-tab="fragilityPanel" aria-selected="false" aria-controls="fragilityPanel" id="tab-fragility">Fragility Landscape</button>
   <button class="tab-btn" role="tab" data-tab="coveragePanel" aria-selected="false" aria-controls="coveragePanel" id="tab-coverage">OA Coverage</button>
 </nav>
-
-<section class="scope-toolbar" id="scopeToolbar" hidden aria-label="Dashboard scope controls">
-  <div class="scope-controls">
-    <span class="scope-label">Scope</span>
-    <div class="scope-segmented" role="group" aria-label="Select dashboard scope">
-      <button class="scope-btn" id="scopePrimary" type="button" aria-pressed="true">Primary only</button>
-      <button class="scope-btn" id="scopeAll" type="button" aria-pressed="false">All outcomes</button>
-    </div>
-  </div>
-  <p class="scope-summary" id="scopeSummary">Load data to choose the dashboard scope.</p>
-</section>
 
 <!-- ======================== Overview Panel ======================== -->
 <section class="panel active" id="overviewPanel" role="tabpanel" aria-labelledby="tab-overview">
@@ -687,7 +589,6 @@ tbody td {
   let sortCol = null;
   let sortAsc = true;
   let selectedReview = null;
-  let scopeMode = 'primary';
 
   // -------------------- Utilities --------------------
   function escapeHtml(str) {
@@ -731,109 +632,6 @@ tbody td {
     'major_discrepancy': '#ef4444',
     'insufficient': '#9ca3af'
   };
-
-  function getPrimaryData() {
-    var primary = data.filter(function(d) { return d && d.is_primary === true; });
-    return primary.length > 0 ? primary : data;
-  }
-
-  function hasExplicitPrimaryMarkers() {
-    return data.some(function(d) { return d && d.is_primary === true; });
-  }
-
-  function getScopedData() {
-    return scopeMode === 'all' ? data : getPrimaryData();
-  }
-
-  function countUniqueReviews(records) {
-    var seen = {};
-    var count = 0;
-    records.forEach(function(d) {
-      var key = d && d.review_id ? d.review_id : '__unknown__';
-      if (!seen[key]) {
-        seen[key] = true;
-        count++;
-      }
-    });
-    return count;
-  }
-
-  function recordLabel(d) {
-    var reviewId = (d && d.review_id) || 'Unknown';
-    var outcomeLabel = (d && d.outcome_label) || '';
-    return outcomeLabel ? reviewId + ' - ' + outcomeLabel : reviewId;
-  }
-
-  function getScopeUnitLabel() {
-    if (scopeMode === 'all') return 'outcomes';
-    if (hasExplicitPrimaryMarkers()) return 'primary outcomes';
-    return 'loaded records';
-  }
-
-  function getScopeUnitLabelForCount(count) {
-    if (scopeMode === 'all') return count === 1 ? 'outcome' : 'outcomes';
-    if (hasExplicitPrimaryMarkers()) return count === 1 ? 'primary outcome' : 'primary outcomes';
-    return count === 1 ? 'loaded record' : 'loaded records';
-  }
-
-  function getScopeCountLabel() {
-    return scopeMode === 'all' ? 'Number of Outcomes' : 'Number of Reviews';
-  }
-
-  function getTier(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.tier || rl.classification || 'insufficient';
-  }
-
-  function getPctDifference(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.pct_difference != null ? rl.pct_difference : rl.rel_diff;
-  }
-
-  function getSameSignificance(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.same_significance != null ? rl.same_significance : rl.same_sig;
-  }
-
-  function getReferenceK(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.reference_k != null ? rl.reference_k : rl.original_k;
-  }
-
-  function getReproducedK(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.reproduced_k != null ? rl.reproduced_k : rl.k_extracted;
-  }
-
-  function getCoverage(d) {
-    var rl = (d && d.review_level) || {};
-    return rl.k_coverage != null ? rl.k_coverage : null;
-  }
-
-  function getStudyTotal(d) {
-    var sl = (d && d.study_level) || {};
-    return sl.total_studies != null ? sl.total_studies : sl.total_k;
-  }
-
-  function getMatchRateStrict(d) {
-    var sl = (d && d.study_level) || {};
-    return sl.match_rate_strict != null ? sl.match_rate_strict : sl.rate_strict;
-  }
-
-  function getMatchRateModerate(d) {
-    var sl = (d && d.study_level) || {};
-    return sl.match_rate_moderate != null ? sl.match_rate_moderate : sl.rate_moderate;
-  }
-
-  function getExtractedCount(d) {
-    var sl = (d && d.study_level) || {};
-    if (sl.n_extracted != null) return sl.n_extracted;
-    var er = (d && d.errors) || {};
-    if (typeof er.success === 'number' || typeof er.no_match === 'number') {
-      return (er.success || 0) + (er.no_match || 0);
-    }
-    return sl.n_with_pdf != null ? sl.n_with_pdf : 0;
-  }
 
   // -------------------- Theme --------------------
   var themeToggle = document.getElementById('themeToggle');
@@ -899,10 +697,6 @@ tbody td {
   // -------------------- File Input --------------------
   var fileInput = document.getElementById('fileInput');
   var csvExportBtn = document.getElementById('csvExport');
-  var scopeToolbar = document.getElementById('scopeToolbar');
-  var scopePrimaryBtn = document.getElementById('scopePrimary');
-  var scopeAllBtn = document.getElementById('scopeAll');
-  var scopeSummary = document.getElementById('scopeSummary');
 
   fileInput.addEventListener('change', function(e) {
     var file = e.target.files[0];
@@ -916,7 +710,6 @@ tbody td {
           return;
         }
         data = parsed;
-        scopeMode = 'primary';
         csvExportBtn.disabled = false;
         renderAll();
       } catch(err) {
@@ -932,25 +725,10 @@ tbody td {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); exportCSV(); }
   });
 
-  scopePrimaryBtn.addEventListener('click', function() {
-    if (scopeMode !== 'primary') {
-      scopeMode = 'primary';
-      renderAll();
-    }
-  });
-
-  scopeAllBtn.addEventListener('click', function() {
-    if (scopeMode !== 'all') {
-      scopeMode = 'all';
-      renderAll();
-    }
-  });
-
   function exportCSV() {
-    var scopedData = getScopedData();
-    if (scopedData.length === 0) return;
+    if (data.length === 0) return;
     var headers = [
-      'review_id','outcome_label','is_primary','inferred_effect_type','total_studies','n_with_pdf',
+      'review_id','outcome_label','inferred_effect_type','total_studies','n_with_pdf',
       'matched_strict','matched_moderate','match_rate_strict','match_rate_moderate',
       'tier','pct_difference','same_direction','same_significance',
       'reference_k','reproduced_k','k_coverage',
@@ -960,23 +738,22 @@ tbody td {
       'classification'
     ];
     var rows = [headers.join(',')];
-    scopedData.forEach(function(d) {
+    data.forEach(function(d) {
       var sl = d.study_level || {};
+      var rl = d.review_level || {};
       var rp = d.reference_pooled || {};
       var pp = d.reproduced_pooled || {};
       var er = d.errors || {};
       var ct = d.cert || {};
       var row = [
-        csvVal(d.review_id), csvVal(d.outcome_label),
-        csvVal(d.is_primary === true ? 'true' : (d.is_primary === false ? 'false' : '')),
-        csvVal(d.inferred_effect_type),
-        csvNum(getStudyTotal(d)), csvNum(sl.n_with_pdf),
+        csvVal(d.review_id), csvVal(d.outcome_label), csvVal(d.inferred_effect_type),
+        csvNum(sl.total_studies), csvNum(sl.n_with_pdf),
         csvNum(sl.matched_strict), csvNum(sl.matched_moderate),
-        csvNum(getMatchRateStrict(d)), csvNum(getMatchRateModerate(d)),
-        csvVal(getTier(d)), csvNum(getPctDifference(d)),
-        d.review_level && d.review_level.same_direction != null ? d.review_level.same_direction : '',
-        getSameSignificance(d) != null ? getSameSignificance(d) : '',
-        csvNum(getReferenceK(d)), csvNum(getReproducedK(d)), csvNum(getCoverage(d)),
+        csvNum(sl.match_rate_strict), csvNum(sl.match_rate_moderate),
+        csvVal(rl.tier), csvNum(rl.pct_difference),
+        rl.same_direction != null ? rl.same_direction : '',
+        rl.same_significance != null ? rl.same_significance : '',
+        csvNum(rl.reference_k), csvNum(rl.reproduced_k), csvNum(rl.k_coverage),
         csvNum(rp.pooled), csvNum(rp.se), csvNum(rp.tau2), csvNum(rp.i2),
         csvNum(pp.pooled), csvNum(pp.se), csvNum(pp.tau2), csvNum(pp.i2),
         csvNum(er.missing_pdf), csvNum(er.extraction_failure), csvNum(er.no_match),
@@ -989,40 +766,11 @@ tbody td {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = scopeMode === 'all' ? 'metareproducer_all_outcomes.csv' : 'metareproducer_primary_outcomes.csv';
+    a.download = 'metareproducer_export.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
-
-  function updateScopeControls() {
-    var hasData = data.length > 0;
-    var scopedData = getScopedData();
-    var explicitPrimary = hasExplicitPrimaryMarkers();
-    var scopeText = 'Load data to choose the dashboard scope.';
-
-    scopeToolbar.hidden = !hasData;
-    scopePrimaryBtn.setAttribute('aria-pressed', scopeMode === 'primary' ? 'true' : 'false');
-    scopeAllBtn.setAttribute('aria-pressed', scopeMode === 'all' ? 'true' : 'false');
-
-    if (!hasData) {
-      scopeSummary.textContent = scopeText;
-      return;
-    }
-
-    if (scopeMode === 'all') {
-      scopeText = 'Showing ' + scopedData.length + ' ' + getScopeUnitLabelForCount(scopedData.length) + ' from ' + countUniqueReviews(scopedData) + ' reviews.';
-      if (explicitPrimary) {
-        scopeText += ' Includes ' + Math.max(data.length - getPrimaryData().length, 0) + ' non-primary outcome(s).';
-      }
-    } else if (explicitPrimary) {
-      scopeText = 'Showing ' + scopedData.length + ' ' + getScopeUnitLabelForCount(scopedData.length) + ' from ' + countUniqueReviews(scopedData) + ' reviews.';
-    } else {
-      scopeText = 'No explicit primary markers found. Primary-only view is showing all ' + scopedData.length + ' ' + getScopeUnitLabelForCount(scopedData.length) + '.';
-    }
-
-    scopeSummary.textContent = scopeText;
   }
 
   function csvVal(v) {
@@ -1041,7 +789,6 @@ tbody td {
 
   // -------------------- Render All --------------------
   function renderAll() {
-    updateScopeControls();
     renderOverview();
     renderExplorer();
     renderTaxonomy();
@@ -1087,27 +834,22 @@ tbody td {
     }
     document.getElementById('overviewEmpty').style.display = 'none';
     document.getElementById('overviewContent').style.display = '';
-    var scopedData = getScopedData();
-    var countLabel = getScopeCountLabel();
-    var classificationLabel = scopeMode === 'all'
-      ? 'Outcome-Level Classifications'
-      : (hasExplicitPrimaryMarkers() ? 'Primary Meta-Analyses Classified' : 'Loaded Records Classified');
 
     // Compute stats
     var totalEffects = 0;
     var reproducedEffects = 0;
     var tierCounts = { reproduced: 0, minor_discrepancy: 0, major_discrepancy: 0, insufficient: 0 };
 
-    scopedData.forEach(function(d) {
+    data.forEach(function(d) {
       var sl = d.study_level || {};
-      totalEffects += getExtractedCount(d);
+      totalEffects += sl.n_extracted || 0;
       reproducedEffects += sl.matched_moderate || 0;
-      var tier = getTier(d);
+      var tier = (d.review_level && d.review_level.tier) ? d.review_level.tier : 'insufficient';
       if (tierCounts[tier] != null) tierCounts[tier]++;
       else tierCounts.insufficient++;
     });
 
-    var totalReviews = scopedData.length;
+    var totalReviews = data.length;
     var classifiedReviews = totalReviews - tierCounts.insufficient;
     var effectPct = totalEffects > 0 ? (reproducedEffects / totalEffects * 100).toFixed(1) : '0.0';
 
@@ -1118,7 +860,7 @@ tbody td {
     statsHtml += '<div class="stat-sublabel">' + escapeHtml(effectPct) + '% match rate</div></div>';
 
     statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(String(classifiedReviews) + '/' + String(totalReviews)) + '</div>';
-    statsHtml += '<div class="stat-label">' + escapeHtml(classificationLabel) + '</div>';
+    statsHtml += '<div class="stat-label">Meta-analyses classified</div>';
     statsHtml += '<div class="stat-sublabel">' + escapeHtml(tierCounts.reproduced + ' Reproduced, ' + tierCounts.minor_discrepancy + ' Minor, ' + tierCounts.major_discrepancy + ' Major') + '</div></div>';
 
     statsHtml += '<div class="stat-card" style="border-left: 4px solid var(--tier-reproduced);"><div class="stat-value" style="color:var(--tier-reproduced);">' + escapeHtml(String(tierCounts.reproduced)) + '</div>';
@@ -1153,10 +895,10 @@ tbody td {
 
     // Bar chart by effect type
     var effectTypes = {};
-    scopedData.forEach(function(d) {
+    data.forEach(function(d) {
       var et = d.inferred_effect_type || 'Unknown';
       if (!effectTypes[et]) effectTypes[et] = { reproduced: 0, minor_discrepancy: 0, major_discrepancy: 0, insufficient: 0 };
-      var tier = getTier(d);
+      var tier = (d.review_level && d.review_level.tier) ? d.review_level.tier : 'insufficient';
       if (effectTypes[et][tier] != null) effectTypes[et][tier]++;
       else effectTypes[et].insufficient++;
     });
@@ -1176,14 +918,14 @@ tbody td {
     Plotly.newPlot('barChart', barTraces, plotlyLayout({
       barmode: 'stack',
       margin: { t: 10, b: 40, l: 60, r: 20 },
-      xaxis: { title: countLabel },
+      xaxis: { title: 'Number of Reviews' },
       yaxis: { title: '' },
       legend: { orientation: 'h', y: -0.2 }
     }), PLOTLY_CONFIG);
 
     // OA coverage summary
-    var covValues = scopedData.map(function(d) {
-      return getCoverage(d);
+    var covValues = data.map(function(d) {
+      return d.review_level ? d.review_level.k_coverage : null;
     }).filter(function(v) { return v != null && isFinite(v); });
 
     var oaText = '';
@@ -1191,9 +933,9 @@ tbody td {
       var mean = covValues.reduce(function(a,b) { return a+b; }, 0) / covValues.length;
       var min = Math.min.apply(null, covValues);
       var max = Math.max.apply(null, covValues);
-      oaText = 'Across ' + covValues.length + ' ' + getScopeUnitLabelForCount(covValues.length) + ': mean k-coverage = ' + pct(mean, 1) +
+      oaText = 'Across ' + covValues.length + ' classified reviews: mean k-coverage = ' + pct(mean, 1) +
                ' (range ' + pct(min, 1) + ' to ' + pct(max, 1) + '). ' +
-               tierCounts.insufficient + ' ' + getScopeUnitLabelForCount(tierCounts.insufficient) + ' had insufficient OA coverage for classification.';
+               tierCounts.insufficient + ' review(s) had insufficient OA coverage for classification.';
     } else {
       oaText = 'No coverage data available.';
     }
@@ -1206,15 +948,15 @@ tbody td {
 
   function getRowData(d) {
     var sl = d.study_level || {};
+    var rl = d.review_level || {};
     var er = d.errors || {};
     return {
       review_id: d.review_id || '',
       outcome_label: d.outcome_label || '',
-      is_primary: d.is_primary === true,
       inferred_effect_type: d.inferred_effect_type || '',
-      k: getReferenceK(d) != null ? getReferenceK(d) : getStudyTotal(d),
-      oa_coverage: getCoverage(d),
-      tier: getTier(d),
+      k: rl.reference_k != null ? rl.reference_k : (sl.total_studies != null ? sl.total_studies : ''),
+      oa_coverage: rl.k_coverage != null ? rl.k_coverage : null,
+      tier: (rl.tier) ? rl.tier : 'insufficient',
       primary_error: er.primary_error_source || ''
     };
   }
@@ -1233,12 +975,11 @@ tbody td {
   function renderExplorerRows() {
     var query = (explorerSearch.value || '').toLowerCase().trim();
     var tbody = document.getElementById('explorerBody');
-    var scopedData = getScopedData();
 
     // Prepare row data and filter
-    var rows = scopedData.map(function(d) {
+    var rows = data.map(function(d, i) {
       var rd = getRowData(d);
-      rd._index = data.indexOf(d);
+      rd._index = i;
       return rd;
     });
 
@@ -1272,11 +1013,7 @@ tbody td {
     rows.forEach(function(rd) {
       html += '<tr tabindex="0" data-idx="' + rd._index + '">';
       html += '<td>' + escapeHtml(rd.review_id) + '</td>';
-      html += '<td>' + escapeHtml(rd.outcome_label);
-      if (scopeMode === 'all' && hasExplicitPrimaryMarkers()) {
-        html += '<span class="scope-pill ' + (rd.is_primary ? 'primary' : 'secondary') + '">' + (rd.is_primary ? 'Primary' : 'Secondary') + '</span>';
-      }
-      html += '</td>';
+      html += '<td>' + escapeHtml(rd.outcome_label) + '</td>';
       html += '<td>' + escapeHtml(rd.inferred_effect_type) + '</td>';
       html += '<td>' + escapeHtml(String(rd.k)) + '</td>';
       html += '<td>' + (rd.oa_coverage != null ? escapeHtml(pct(rd.oa_coverage, 1)) : 'N/A') + '</td>';
@@ -1365,7 +1102,7 @@ tbody td {
     var pp = d.reproduced_pooled || {};
     var er = d.errors || {};
     var ct = d.cert || {};
-    var tier = getTier(d);
+    var tier = rl.tier || 'insufficient';
 
     var html = '';
     html += '<div class="drilldown-header">';
@@ -1382,13 +1119,13 @@ tbody td {
 
     // Study-level stats
     html += '<div class="card"><div class="card-title">Study-Level Stats</div>';
-    html += detailRow('Total Studies', getStudyTotal(d));
+    html += detailRow('Total Studies', sl.total_studies);
     html += detailRow('With PDF', sl.n_with_pdf);
-    html += detailRow('Extracted', getExtractedCount(d));
+    html += detailRow('Extracted', sl.n_extracted);
     html += detailRow('Strict Match', sl.matched_strict);
     html += detailRow('Moderate Match', sl.matched_moderate);
-    html += detailRow('Strict Match Rate', pct(getMatchRateStrict(d), 1));
-    html += detailRow('Moderate Match Rate', pct(getMatchRateModerate(d), 1));
+    html += detailRow('Strict Match Rate', pct(sl.match_rate_strict, 1));
+    html += detailRow('Moderate Match Rate', pct(sl.match_rate_moderate, 1));
     html += '</div>';
 
     // Error breakdown
@@ -1428,12 +1165,12 @@ tbody td {
     // Review-level comparison
     html += '<div class="card"><div class="card-title">Review-Level Comparison</div>';
     if (d.review_level) {
-      html += detailRow('% Difference', pct(getPctDifference(d), 1));
+      html += detailRow('% Difference', pct(rl.pct_difference, 1));
       html += detailRow('Same Direction', rl.same_direction ? 'Yes' : 'No');
-      html += detailRow('Same Significance', getSameSignificance(d) ? 'Yes' : 'No');
-      html += detailRow('Reference k', getReferenceK(d));
-      html += detailRow('Reproduced k', getReproducedK(d));
-      html += detailRow('k Coverage', pct(getCoverage(d), 1));
+      html += detailRow('Same Significance', rl.same_significance ? 'Yes' : 'No');
+      html += detailRow('Reference k', rl.reference_k);
+      html += detailRow('Reproduced k', rl.reproduced_k);
+      html += detailRow('k Coverage', pct(rl.k_coverage, 1));
     } else {
       html += '<p style="color: var(--text-muted); font-size: 0.875rem;">Insufficient data for review-level classification</p>';
     }
@@ -1474,21 +1211,17 @@ tbody td {
     }
     document.getElementById('taxonomyEmpty').style.display = 'none';
     document.getElementById('taxonomyContent').style.display = '';
-    var scopedData = getScopedData();
-    var useOutcomeLabels = scopeMode === 'all' || countUniqueReviews(scopedData) !== scopedData.length;
 
     var categories = ['missing_pdf', 'extraction_failure', 'no_match', 'success'];
     var catLabels = ['Missing PDF', 'Extraction Failure', 'No Match', 'Success'];
     var catColors = ['#9ca3af', '#ef4444', '#f59e0b', '#22c55e'];
 
-    var reviewIds = scopedData.map(function(d) {
-      return useOutcomeLabels ? recordLabel(d) : (d.review_id || 'Unknown');
-    });
+    var reviewIds = data.map(function(d) { return d.review_id || 'Unknown'; });
     var totals = {};
     categories.forEach(function(cat) { totals[cat] = 0; });
 
     var traces = categories.map(function(cat, ci) {
-      var vals = scopedData.map(function(d) {
+      var vals = data.map(function(d) {
         var er = d.errors || {};
         var v = er[cat] != null ? er[cat] : 0;
         totals[cat] += v;
@@ -1506,7 +1239,7 @@ tbody td {
     Plotly.newPlot('taxonomyChart', traces, plotlyLayout({
       barmode: 'stack',
       margin: { t: 10, b: 80, l: 50, r: 20 },
-      xaxis: { title: useOutcomeLabels ? 'Review / Outcome' : 'Review', tickangle: -30 },
+      xaxis: { title: 'Review', tickangle: -30 },
       yaxis: { title: 'Study Count' },
       legend: { orientation: 'h', y: -0.35 }
     }), PLOTLY_CONFIG);
@@ -1531,23 +1264,23 @@ tbody td {
     document.getElementById('fragilityContent').style.display = '';
 
     // Only reviews with review_level != null
-    var filtered = getScopedData().filter(function(d) { return d.review_level != null; });
+    var filtered = data.filter(function(d) { return d.review_level != null; });
 
     if (filtered.length === 0) {
-      document.getElementById('fragilityChart').innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 40px;">No ' + escapeHtml(getScopeUnitLabel()) + ' with classification data.</p>';
+      document.getElementById('fragilityChart').innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 40px;">No reviews with classification data.</p>';
       return;
     }
 
     // Group by tier for coloring
     var tiers = ['reproduced', 'minor_discrepancy', 'major_discrepancy'];
     var traces = tiers.map(function(tier) {
-      var items = filtered.filter(function(d) { return getTier(d) === tier; });
+      var items = filtered.filter(function(d) { return d.review_level.tier === tier; });
       return {
         type: 'scatter',
         mode: 'markers',
         name: tierDisplay(tier),
-        x: items.map(function(d) { return getReferenceK(d); }),
-        y: items.map(function(d) { return (getPctDifference(d) || 0) * 100; }),
+        x: items.map(function(d) { return d.review_level.reference_k; }),
+        y: items.map(function(d) { return (d.review_level.pct_difference || 0) * 100; }),
         text: items.map(function(d) { return d.review_id + ': ' + d.outcome_label; }),
         hoverinfo: 'text+x+y',
         marker: {
@@ -1579,10 +1312,9 @@ tbody td {
     document.getElementById('coverageContent').style.display = '';
 
     var covValues = [];
-    getScopedData().forEach(function(d) {
-      var coverage = getCoverage(d);
-      if (coverage != null && isFinite(coverage)) {
-        covValues.push(coverage);
+    data.forEach(function(d) {
+      if (d.review_level && d.review_level.k_coverage != null && isFinite(d.review_level.k_coverage)) {
+        covValues.push(d.review_level.k_coverage);
       }
     });
 
@@ -1597,7 +1329,7 @@ tbody td {
       var min = sorted[0];
       var max = sorted[sorted.length - 1];
 
-      statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(String(covValues.length)) + '</div><div class="stat-label">' + escapeHtml(getScopeUnitLabel().replace(/^./, function(c) { return c.toUpperCase(); }) + ' with coverage data') + '</div></div>';
+      statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(String(covValues.length)) + '</div><div class="stat-label">Reviews with coverage data</div></div>';
       statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(pct(mean, 1)) + '</div><div class="stat-label">Mean k-Coverage</div></div>';
       statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(pct(median, 1)) + '</div><div class="stat-label">Median k-Coverage</div></div>';
       statsHtml += '<div class="stat-card"><div class="stat-value">' + escapeHtml(pct(min, 1) + ' - ' + pct(max, 1)) + '</div><div class="stat-label">Range</div></div>';
@@ -1617,7 +1349,7 @@ tbody td {
       }], plotlyLayout({
         margin: { t: 10, b: 50, l: 50, r: 20 },
         xaxis: { title: 'k-Coverage (%)', range: [0, 105] },
-        yaxis: { title: getScopeCountLabel() },
+        yaxis: { title: 'Number of Reviews' },
         bargap: 0.05
       }), PLOTLY_CONFIG);
     } else {
@@ -1631,7 +1363,6 @@ tbody td {
   window.__loadDashboardData = function(payload) {
     if (!Array.isArray(payload)) return;
     data = payload;
-    scopeMode = 'primary';
     document.getElementById('csvExport').disabled = false;
     renderAll();
   };

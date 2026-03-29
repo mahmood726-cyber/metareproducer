@@ -91,28 +91,35 @@ def infer_effect_type(study: dict) -> str:
     ----------
     study : dict
         Must contain "data_type" and "mean".
-        For binary: also "Experimental.cases", "Experimental.N",
-                    "Control.cases", "Control.N".
-        For continuous: also "Experimental.mean", "Experimental.SD",
-                        "Experimental.N", "Control.mean", "Control.SD",
-                        "Control.N".
+        For binary: also "events_int", "total_int",
+                    "events_ctrl", "total_ctrl".
+        For continuous: also "mean_int", "sd_int", "n_int",
+                        "mean_ctrl", "sd_ctrl", "n_ctrl".
 
     Returns
     -------
     str — one of: "OR", "RR", "MD", "SMD", "unknown_ratio", "ambiguous"
     """
     data_type: str = study.get("data_type", "")
-    observed: float = study.get("mean", float("nan"))
+    observed_raw = study.get("mean")
+    if observed_raw is None:
+        return "unknown_ratio"
+    try:
+        observed: float = float(observed_raw)
+    except (TypeError, ValueError):
+        return "unknown_ratio"
+    if math.isnan(observed):
+        return "unknown_ratio"
 
     # GIV-only: no raw counts or means available
     if data_type == "giv_only":
         return "unknown_ratio"
 
     if data_type == "binary":
-        a = study.get("Experimental.cases")
-        n1 = study.get("Experimental.N")
-        c = study.get("Control.cases")
-        n2 = study.get("Control.N")
+        a = study.get("events_int")
+        n1 = study.get("total_int")
+        c = study.get("events_ctrl")
+        n2 = study.get("total_ctrl")
 
         if any(v is None for v in (a, n1, c, n2)):
             return "unknown_ratio"
@@ -134,12 +141,12 @@ def infer_effect_type(study: dict) -> str:
         return "ambiguous"
 
     if data_type == "continuous":
-        m1 = study.get("Experimental.mean")
-        sd1 = study.get("Experimental.SD")
-        n1 = study.get("Experimental.N")
-        m2 = study.get("Control.mean")
-        sd2 = study.get("Control.SD")
-        n2 = study.get("Control.N")
+        m1 = study.get("mean_int")
+        sd1 = study.get("sd_int")
+        n1 = study.get("n_int")
+        m2 = study.get("mean_ctrl")
+        sd2 = study.get("sd_ctrl")
+        n2 = study.get("n_ctrl")
 
         if any(v is None for v in (m1, m2)):
             return "unknown_ratio"

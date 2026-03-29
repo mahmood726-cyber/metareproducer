@@ -7,8 +7,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pipeline.rda_parser import load_all_rdas
+from pipeline import effect_extractor
 from pipeline.effect_inference import infer_outcome_types
-from pipeline.orchestrator import reproduce_outcome, select_primary_outcome
+from pipeline.orchestrator import reproduce_review
 
 # Also import the linking module
 sys.path.insert(0, str(Path(__file__).parent))
@@ -16,6 +17,11 @@ from link_mega_data import build_study_pdf_map, build_study_pmid_map, link_revie
 
 RDA_DIR = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
 RESULTS_DIR = Path(__file__).parent.parent / "data" / "results"
+
+
+def _primary_reports(reports):
+    primary = [r for r in reports if r.get("is_primary") is True]
+    return primary if primary else reports
 
 
 def main():
@@ -31,27 +37,42 @@ def main():
     pmid_map = build_study_pmid_map()
     link_reviews(reviews, pdf_map, pmid_map)
 
-    # Initialize AACT CT.gov lookup (second extraction pathway)
-    from pipeline.ctgov_extractor import get_connection, build_aact_lookup
     aact_lookup = None
-    conn = get_connection()
-    if conn:
-        # Collect all PMIDs from linked studies
-        all_pmids = []
-        for review in reviews:
-            for outcome in review["outcomes"]:
-                for study in outcome["studies"]:
-                    pmid = study.get("pmid")
-                    if pmid:
-                        all_pmids.append(str(pmid))
-        all_pmids = list(set(all_pmids))
-        print(f"Looking up {len(all_pmids)} PMIDs in AACT...")
-        aact_lookup = build_aact_lookup(conn, all_pmids)
-        print(f"AACT lookup: {len(aact_lookup)} studies with CT.gov data")
-        conn.close()
-    else:
-        print("AACT connection unavailable — using PDF pathway only")
+    # Initialize AACT CT.gov lookup (second extraction pathway)
+    all_pmids = []
+    for review in reviews:
+        for outcome in review["outcomes"]:
+            for study in outcome["studies"]:
+                pmid = study.get("pmid")
+                if pmid:
+                    all_pmids.append(str(pmid))
+    all_pmids = list(set(all_pmids))
 
+    try:
+        from pipeline.ctgov_extractor import get_connection, build_aact_lookup
+        conn = get_connection()
+        if conn:
+            print(f"Looking up {len(all_pmids)} PMIDs in AACT...")
+            aact_lookup = build_aact_lookup(conn, all_pmids)
+            print(f"AACT lookup: {len(aact_lookup)} studies with CT.gov data")
+            conn.close()
+    except Exception as e:
+        print(f"AACT PostgreSQL unavailable ({e})")
+
+    if aact_lookup is None:
+        try:
+            from pipeline.ctgov_extractor import build_aact_lookup_via_api
+            print("Falling back to CT.gov REST API v2...")
+            print(f"Looking up {len(all_pmids)} unique PMIDs...")
+            aact_lookup = build_aact_lookup_via_api(all_pmids)
+            print(f"CT.gov API v2: {len(aact_lookup)} studies with effect data")
+        except Exception as e:
+            print(f"CT.gov API v2 unavailable ({e}) — using PDF pathway only")
+
+    try:
+        existing_extractions = effect_extractor.load_existing_extractions()
+    except FileNotFoundError:
+        existing_extractions = {}
     all_reports = []
     for i, review in enumerate(reviews):
         for outcome in review["outcomes"]:
@@ -60,12 +81,14 @@ def main():
         if not review["outcomes"]:
             continue
 
-        primary = select_primary_outcome(review["outcomes"])
-
         try:
-            report = reproduce_outcome(review["review_id"], primary,
-                                       aact_lookup=aact_lookup)
-            all_reports.append(report)
+            reports = reproduce_review(
+                review["review_id"],
+                review["outcomes"],
+                aact_lookup=aact_lookup,
+                existing_extractions=existing_extractions,
+            )
+            all_reports.extend(reports)
         except Exception as e:
             print(f"  ERROR: {review['review_id']}: {e}")
             continue
@@ -76,17 +99,23 @@ def main():
     summary_path = RESULTS_DIR / "summary.json"
     with open(summary_path, "w") as f:
         json.dump(all_reports, f, indent=2, default=str)
-    print(f"\nSaved {len(all_reports)} reports to {summary_path}")
+    primary_reports = _primary_reports(all_reports)
+    primary_path = RESULTS_DIR / "summary_primary.json"
+    with open(primary_path, "w") as f:
+        json.dump(primary_reports, f, indent=2, default=str)
+    print(f"\nSaved {len(all_reports)} outcome reports to {summary_path}")
+    print(f"Saved {len(primary_reports)} primary outcome reports to {primary_path}")
 
     # Headline stats
-    study_total = sum(r["study_level"]["total_k"] for r in all_reports)
-    study_matched = sum(r["study_level"]["matched_moderate"] for r in all_reports)
-    review_classified = [r for r in all_reports if r["review_level"] is not None]
+    study_total = sum(r["study_level"]["total_k"] for r in primary_reports)
+    study_matched = sum(r["study_level"]["matched_moderate"] for r in primary_reports)
+    review_classified = [r for r in primary_reports if r["review_level"] is not None]
     reproduced = sum(1 for r in review_classified if r["review_level"]["classification"] == "reproduced")
     major = sum(1 for r in review_classified if r["review_level"]["classification"] == "major_discrepancy")
 
     print(f"\n=== HEADLINE RESULTS ===")
-    print(f"Reviews processed: {len(all_reports)}")
+    print(f"Reviews processed: {len(primary_reports)}")
+    print(f"Outcomes audited: {len(all_reports)}")
     print(f"Study-level: {study_matched}/{study_total} matched within 10%")
     print(f"Review-level classified: {len(review_classified)}")
     print(f"  Reproduced: {reproduced}")

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "MetaReproducer: Automated Reproducibility Audit of Cochrane Meta-Analyses"
+message: "If you use this software, please cite it as below."
+type: software
+version: "1.0.0"
+date-released: "2026-03-24"
+license: MIT
+authors:
+  - name: "[AUTHOR_PLACEHOLDER]"
+    orcid: "[ORCID_PLACEHOLDER]"
+repository-code: "[REPOSITORY_URL_PLACEHOLDER]"
+keywords:
+  - meta-analysis
+  - reproducibility
+  - Cochrane
+  - systematic review
+  - evidence synthesis
+abstract: "Automated reproducibility audit pipeline for 465 Cochrane meta-analyses. Re-extracts effects from trial PDFs, re-pools results via DerSimonian-Laird and REML, and classifies reproducibility at study and review levels with TruthCert provenance chain."

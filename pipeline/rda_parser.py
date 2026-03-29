@@ -64,9 +64,11 @@ def _safe_float(val: Any) -> Optional[float]:
 
 
 def _safe_int(val: Any) -> Optional[int]:
-    """Convert val to int via float; return None for NaN / None."""
+    """Convert val to int via float; return None for NaN / None / Inf."""
     f = _safe_float(val)
-    return None if f is None else int(f)
+    if f is None or not math.isfinite(f):
+        return None
+    return int(f)
 
 
 def _detect_data_type(row: dict) -> str:

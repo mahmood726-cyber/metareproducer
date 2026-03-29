@@ -134,7 +134,11 @@ def assess_review_level(
     ref_sig   = _is_significant(ref_pooled,   ref_se,   alpha)
     repro_sig = _is_significant(repro_pooled, repro_se, alpha)
 
-    same_direction = (ref_pooled * repro_pooled) > 0
+    # Treat near-zero estimates as compatible with any direction
+    if abs(ref_pooled) < 1e-10 or abs(repro_pooled) < 1e-10:
+        same_direction = True
+    else:
+        same_direction = (ref_pooled * repro_pooled) > 0
     same_sig       = ref_sig == repro_sig
 
     rel_diff = (

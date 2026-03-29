@@ -25,10 +25,10 @@ def test_infer_binary_or():
 
     study = {
         "data_type": "binary",
-        "Experimental.cases": 15,
-        "Experimental.N": 100,
-        "Control.cases": 20,
-        "Control.N": 100,
+        "events_int": 15,
+        "total_int": 100,
+        "events_ctrl": 20,
+        "total_ctrl": 100,
         "mean": (15 * 80) / (85 * 20),   # OR = 0.70588…
     }
     result = infer_effect_type(study)
@@ -41,10 +41,10 @@ def test_infer_binary_rr():
 
     study = {
         "data_type": "binary",
-        "Experimental.cases": 15,
-        "Experimental.N": 100,
-        "Control.cases": 20,
-        "Control.N": 100,
+        "events_int": 15,
+        "total_int": 100,
+        "events_ctrl": 20,
+        "total_ctrl": 100,
         "mean": 0.75,   # matches RR exactly
     }
     result = infer_effect_type(study)
@@ -57,12 +57,12 @@ def test_infer_continuous_md():
 
     study = {
         "data_type": "continuous",
-        "Experimental.mean": 12.3,
-        "Experimental.SD": 4.1,
-        "Experimental.N": 50,
-        "Control.mean": 14.8,
-        "Control.SD": 3.9,
-        "Control.N": 50,
+        "mean_int": 12.3,
+        "sd_int": 4.1,
+        "n_int": 50,
+        "mean_ctrl": 14.8,
+        "sd_ctrl": 3.9,
+        "n_ctrl": 50,
         "mean": -2.5,
     }
     result = infer_effect_type(study)
@@ -79,12 +79,12 @@ def test_infer_continuous_smd():
 
     study = {
         "data_type": "continuous",
-        "Experimental.mean": m1,
-        "Experimental.SD": sd1,
-        "Experimental.N": n1,
-        "Control.mean": m2,
-        "Control.SD": sd2,
-        "Control.N": n2,
+        "mean_int": m1,
+        "sd_int": sd1,
+        "n_int": n1,
+        "mean_ctrl": m2,
+        "sd_ctrl": sd2,
+        "n_ctrl": n2,
         "mean": expected_g,
     }
     result = infer_effect_type(study)
@@ -109,10 +109,10 @@ def test_infer_ambiguous():
 
     study = {
         "data_type": "binary",
-        "Experimental.cases": 15,
-        "Experimental.N": 100,
-        "Control.cases": 20,
-        "Control.N": 100,
+        "events_int": 15,
+        "total_int": 100,
+        "events_ctrl": 20,
+        "total_ctrl": 100,
         "mean": 0.50,   # matches neither OR nor RR
     }
     result = infer_effect_type(study)
@@ -128,18 +128,18 @@ def test_infer_outcome_types():
         "studies": [
             {
                 "data_type": "binary",
-                "Experimental.cases": 15,
-                "Experimental.N": 100,
-                "Control.cases": 20,
-                "Control.N": 100,
+                "events_int": 15,
+                "total_int": 100,
+                "events_ctrl": 20,
+                "total_ctrl": 100,
                 "mean": (15 * 80) / (85 * 20),   # OR
             },
             {
                 "data_type": "binary",
-                "Experimental.cases": 10,
-                "Experimental.N": 80,
-                "Control.cases": 18,
-                "Control.N": 85,
+                "events_int": 10,
+                "total_int": 80,
+                "events_ctrl": 18,
+                "total_ctrl": 85,
                 "mean": (10 * 67) / (70 * 18),   # OR for these counts
             },
         ]

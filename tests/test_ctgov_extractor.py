@@ -195,3 +195,73 @@ def test_get_connection_exists():
     from pipeline.ctgov_extractor import get_connection
 
     assert callable(get_connection)
+
+
+# ---------------------------------------------------------------------------
+# CT.gov REST API v2 fallback
+# ---------------------------------------------------------------------------
+
+def test_build_aact_lookup_via_api_exists():
+    """build_aact_lookup_via_api function exists and is callable."""
+    from pipeline.ctgov_extractor import build_aact_lookup_via_api
+
+    assert callable(build_aact_lookup_via_api)
+
+
+def test_build_aact_lookup_via_api_empty():
+    """Empty PMID list returns empty dict without API calls."""
+    from pipeline.ctgov_extractor import build_aact_lookup_via_api
+
+    result = build_aact_lookup_via_api([])
+    assert result == {}
+
+
+def test_api_batch_pmid_to_nct_empty():
+    """Empty PMID list returns empty dict without API calls."""
+    from pipeline.ctgov_extractor import _api_batch_pmid_to_nct
+
+    result = _api_batch_pmid_to_nct([])
+    assert result == {}
+
+
+def test_api_fetch_analyses_empty():
+    """Empty NCT ID list returns empty dict without API calls."""
+    from pipeline.ctgov_extractor import _api_fetch_analyses
+
+    result = _api_fetch_analyses([])
+    assert result == {}
+
+
+@pytest.mark.skipif(
+    not pytest.importorskip("urllib.request", reason="no network"),
+    reason="network access required",
+)
+def test_api_batch_pmid_to_nct_live():
+    """Live test: known PMID (EMPA-REG) maps to a valid NCT ID."""
+    from pipeline.ctgov_extractor import _api_batch_pmid_to_nct
+
+    result = _api_batch_pmid_to_nct(["26378978"])
+    # PMID 26378978 is referenced by multiple studies (NCT01131676,
+    # NCT03200860, etc.).  We just verify it maps to *some* NCT ID.
+    assert "26378978" in result
+    assert result["26378978"].startswith("NCT")
+
+
+@pytest.mark.skipif(
+    not pytest.importorskip("urllib.request", reason="no network"),
+    reason="network access required",
+)
+def test_api_fetch_analyses_live():
+    """Live test: NCT01131676 (EMPA-REG) has HR analyses."""
+    from pipeline.ctgov_extractor import _api_fetch_analyses
+
+    result = _api_fetch_analyses(["NCT01131676"])
+    assert "NCT01131676" in result
+    effects = result["NCT01131676"]
+    assert len(effects) > 0
+    # Should have at least one HR
+    hr_effects = [e for e in effects if "Hazard" in e.get("param_type", "")]
+    assert len(hr_effects) > 0
+    # Known primary result: HR = 0.86
+    hr_086 = [e for e in hr_effects if abs(e["point_estimate"] - 0.86) < 0.01]
+    assert len(hr_086) > 0

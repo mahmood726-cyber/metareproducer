@@ -6,13 +6,15 @@ reproduce-one-outcome workflow.
 
 Public API
 ----------
-se_from_ci(mean, ci_lower, ci_upper, is_ratio)           -> float | None
+se_from_ci(mean, ci_lower, ci_upper, is_ratio, conf_level=0.95) -> float | None
 select_primary_outcome(outcomes)                          -> dict
+reproduce_review(review_id, outcomes, aact_lookup=None)  -> list[dict]
 reproduce_outcome(review_id, outcome, aact_lookup=None)   -> dict
 
 Internal
 --------
 _is_ratio_type(effect_type) -> bool
+_outcome_sort_key(outcome)  -> tuple
 """
 
 from __future__ import annotations
@@ -23,7 +25,6 @@ from typing import Optional
 from scipy import stats
 
 from pipeline import meta_engine, comparator, taxonomy, truthcert, effect_extractor
-from pipeline import ctgov_extractor
 
 
 # ---------------------------------------------------------------------------
@@ -48,22 +49,24 @@ def se_from_ci(
     ci_lower: float,
     ci_upper: float,
     is_ratio: bool,
+    conf_level: float = 0.95,
 ) -> Optional[float]:
-    """Back-calculate SE from a point estimate and 95 % confidence interval.
+    """Back-calculate SE from a point estimate and confidence interval.
 
     Parameters
     ----------
-    mean      : point estimate (natural scale)
-    ci_lower  : lower CI bound (natural scale)
-    ci_upper  : upper CI bound (natural scale)
-    is_ratio  : True for ratio measures (OR, RR, HR) — uses log scale
+    mean       : point estimate (natural scale)
+    ci_lower   : lower CI bound (natural scale)
+    ci_upper   : upper CI bound (natural scale)
+    is_ratio   : True for ratio measures (OR, RR, HR) — uses log scale
+    conf_level : confidence level (default 0.95)
 
     Returns
     -------
     float  — estimated SE (on log scale for ratios, natural scale for diffs)
     None   — when inputs are invalid (e.g. non-positive bounds for ratio)
     """
-    z = stats.norm.ppf(0.975)
+    z = stats.norm.ppf(1.0 - (1.0 - conf_level) / 2.0)
 
     if is_ratio:
         # Guard: ratio-scale CI bounds must be positive
@@ -89,14 +92,24 @@ def se_from_ci(
 
 
 # ---------------------------------------------------------------------------
-# select_primary_outcome
+# outcome ordering
 # ---------------------------------------------------------------------------
 
-def select_primary_outcome(outcomes: list[dict]) -> dict:
-    """Select the primary outcome from a list.
+def _outcome_sort_key(outcome: dict) -> tuple:
+    """Return the deterministic outcome ordering key.
 
     Priority: largest k, then binary > continuous > giv_only,
     then alphabetical by outcome_label.
+    """
+    return (
+        -outcome["k"],
+        TYPE_PRIORITY.get(outcome.get("data_type", ""), 9),
+        outcome.get("outcome_label", ""),
+    )
+
+
+def select_primary_outcome(outcomes: list[dict]) -> dict:
+    """Select the primary outcome from a list.
 
     Parameters
     ----------
@@ -107,14 +120,48 @@ def select_primary_outcome(outcomes: list[dict]) -> dict:
     -------
     dict — the selected outcome
     """
-    return min(
-        outcomes,
-        key=lambda o: (
-            -o["k"],
-            TYPE_PRIORITY.get(o.get("data_type", ""), 9),
-            o.get("outcome_label", ""),
-        ),
-    )
+    return min(outcomes, key=_outcome_sort_key)
+
+
+def reproduce_review(
+    review_id: str,
+    outcomes: list[dict],
+    aact_lookup: Optional[dict] = None,
+    existing_extractions: Optional[dict] = None,
+) -> list[dict]:
+    """Run the full reproducibility pipeline for every outcome in a review.
+
+    Outcomes are processed in deterministic primary-first order. The returned
+    reports carry outcome-level metadata so downstream consumers can keep a
+    primary-outcome view while retaining the full audit.
+    """
+    if existing_extractions is None:
+        try:
+            existing_extractions = effect_extractor.load_existing_extractions()
+        except FileNotFoundError:
+            existing_extractions = {}
+
+    ordered_outcomes = sorted(outcomes, key=_outcome_sort_key)
+    if not ordered_outcomes:
+        return []
+
+    primary_label = ordered_outcomes[0].get("outcome_label", "")
+    reports: list[dict] = []
+
+    for idx, outcome in enumerate(ordered_outcomes):
+        report = reproduce_outcome(
+            review_id,
+            outcome,
+            aact_lookup=aact_lookup,
+            existing_extractions=existing_extractions,
+        )
+        report["is_primary"] = idx == 0
+        report["outcome_rank"] = idx + 1
+        report["n_outcomes_in_review"] = len(ordered_outcomes)
+        report["primary_outcome_label"] = primary_label
+        reports.append(report)
+
+    return reports
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +181,7 @@ def reproduce_outcome(
     review_id: str,
     outcome: dict,
     aact_lookup: Optional[dict] = None,
+    existing_extractions: Optional[dict] = None,
 ) -> dict:
     """Run the full reproducibility pipeline for one outcome.
 
@@ -200,7 +248,11 @@ def reproduce_outcome(
 
     # ----- (b) Extract effects for studies with PDFs -----
     # Load pre-computed extraction results (avoids re-running on 1,290 PDFs)
-    existing_extractions = effect_extractor.load_existing_extractions()
+    if existing_extractions is None:
+        try:
+            existing_extractions = effect_extractor.load_existing_extractions()
+        except FileNotFoundError:
+            existing_extractions = {}
 
     extractions: list[dict] = []
     n_with_pdf = 0
@@ -272,6 +324,7 @@ def reproduce_outcome(
     # ----- (b2) AACT fallback for unmatched studies -----
     n_aact_matched = 0
     if aact_lookup is not None:
+        from pipeline import ctgov_extractor
         for i, s in enumerate(studies):
             study_id = s.get("study_id", "")
             cochrane_mean = s.get("mean")
@@ -367,12 +420,22 @@ def reproduce_outcome(
     # ----- (e) Error taxonomy -----
     study_errors: list[Optional[str]] = []
     for idx, s in enumerate(studies):
-        has_pdf = s.get("pdf_path") is not None
         ext = extractions[idx] if idx < len(extractions) else None
-        err = taxonomy.classify_study_error(has_pdf=has_pdf, extraction=ext)
+        has_source = s.get("pdf_path") is not None or (ext is not None and ext.get("source") == "aact")
+        err = taxonomy.classify_study_error(has_pdf=has_source, extraction=ext)
         study_errors.append(err)
 
     errors = taxonomy.aggregate_errors(study_errors)
+
+    study_level["total_studies"] = study_level["total_k"]
+    study_level["match_rate_strict"] = study_level["rate_strict"]
+    study_level["match_rate_moderate"] = study_level["rate_moderate"]
+    study_level["n_extracted"] = sum(
+        1 for e in extractions
+        if e is not None and e.get("extracted_effect") is not None
+    )
+    study_level["extraction_failed"] = errors.get("extraction_failure", 0)
+    study_level["extracted_no_match"] = errors.get("no_match", 0)
 
     # ----- (f) TruthCert -----
     rda_hash = truthcert.hash_data({"review_id": review_id, "outcome": outcome_label})
@@ -382,6 +445,11 @@ def reproduce_outcome(
     classification = "no_extraction"
     if review_level is not None:
         classification = review_level.get("classification", "insufficient")
+        review_level["tier"] = review_level["classification"]
+        review_level["pct_difference"] = review_level["rel_diff"]
+        review_level["same_significance"] = review_level["same_sig"]
+        review_level["reference_k"] = total_k
+        review_level["reproduced_k"] = k_extracted
 
     cert = truthcert.certify(
         review_id=review_id,
@@ -394,6 +462,7 @@ def reproduce_outcome(
     return {
         "review_id": review_id,
         "outcome_label": outcome_label,
+        "data_type": outcome.get("data_type"),
         "inferred_effect_type": effect_type,
         "study_level": study_level,
         "review_level": review_level,

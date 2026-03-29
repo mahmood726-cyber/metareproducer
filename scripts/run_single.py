@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pipeline.rda_parser import load_rda
 from pipeline.effect_inference import infer_outcome_types
-from pipeline.orchestrator import reproduce_outcome, select_primary_outcome
+from pipeline.orchestrator import reproduce_review
 
 
 def main():
@@ -31,18 +31,18 @@ def main():
         print("No outcomes found.")
         return
 
-    primary = select_primary_outcome(review["outcomes"])
-    print(f"\nPrimary outcome: {primary['outcome_label']} (k={primary['k']})")
+    reports = reproduce_review(review["review_id"], review["outcomes"])
+    for report in reports:
+        marker = " [PRIMARY]" if report.get("is_primary") else ""
+        print(f"\nOutcome: {report['outcome_label']}{marker}")
+        print(f"Study-level: {report['study_level']}")
+        print(f"Review-level: {report['review_level']}")
+        print(f"Errors: {report['errors']}")
 
-    report = reproduce_outcome(review["review_id"], primary)
-    print(f"\nStudy-level: {report['study_level']}")
-    print(f"Review-level: {report['review_level']}")
-    print(f"Errors: {report['errors']}")
-
-    out_path = Path("data/results") / f"{review['review_id']}_report.json"
+    out_path = Path("data/results") / f"{review['review_id']}_reports.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
-        json.dump(report, f, indent=2, default=str)
+        json.dump(reports, f, indent=2, default=str)
     print(f"\nSaved: {out_path}")
 
 

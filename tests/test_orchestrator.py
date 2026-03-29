@@ -67,6 +67,48 @@ def test_select_primary_outcome():
     assert primary["outcome_label"] == "B"
 
 
+def test_reproduce_review_returns_all_outcomes_with_primary_flag():
+    """Review-level orchestration audits all outcomes in deterministic order."""
+    from pipeline.orchestrator import reproduce_review
+
+    outcomes = [
+        {
+            "outcome_label": "Continuous secondary",
+            "studies": [{"study_id": "A", "mean": 1.0, "ci_start": 0.5, "ci_end": 1.5, "pdf_path": None}],
+            "data_type": "continuous",
+            "inferred_effect_type": "MD",
+            "k": 3,
+        },
+        {
+            "outcome_label": "Binary tie-break",
+            "studies": [{"study_id": "B", "mean": 0.8, "ci_start": 0.6, "ci_end": 1.0, "pdf_path": None}],
+            "data_type": "binary",
+            "inferred_effect_type": "RR",
+            "k": 3,
+        },
+        {
+            "outcome_label": "Largest outcome",
+            "studies": [{"study_id": "C", "mean": 0.7, "ci_start": 0.5, "ci_end": 0.9, "pdf_path": None}],
+            "data_type": "continuous",
+            "inferred_effect_type": "MD",
+            "k": 5,
+        },
+    ]
+
+    reports = reproduce_review("CD000999", outcomes, existing_extractions={})
+
+    assert [r["outcome_label"] for r in reports] == [
+        "Largest outcome",
+        "Binary tie-break",
+        "Continuous secondary",
+    ]
+    assert reports[0]["is_primary"] is True
+    assert all(r["review_id"] == "CD000999" for r in reports)
+    assert [r["outcome_rank"] for r in reports] == [1, 2, 3]
+    assert all(r["n_outcomes_in_review"] == 3 for r in reports)
+    assert reports[0]["primary_outcome_label"] == "Largest outcome"
+
+
 def test_se_from_ci_ratio():
     """SE back-calculation for ratio measures."""
     from pipeline.orchestrator import se_from_ci

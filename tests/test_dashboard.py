@@ -38,6 +38,75 @@ def _make_driver():
         return None
 
 
+def _inject_payload(driver, payload):
+    """Load payload into the dashboard via the test hook."""
+    driver.execute_script(
+        """
+        window.__loadDashboardData(arguments[0]);
+        """,
+        payload,
+    )
+    time.sleep(1.0)
+
+
+def _scoped_sample_payload():
+    """Synthetic payload with explicit primary and secondary outcomes."""
+    def record(review_id, outcome_label, is_primary, tier, matched, total, coverage):
+        return {
+            "review_id": review_id,
+            "outcome_label": outcome_label,
+            "is_primary": is_primary,
+            "inferred_effect_type": "RR",
+            "study_level": {
+                "total_studies": total,
+                "n_with_pdf": total,
+                "n_extracted": total,
+                "matched_strict": matched,
+                "matched_moderate": matched,
+                "match_rate_strict": matched / total,
+                "match_rate_moderate": matched / total,
+            },
+            "review_level": {
+                "tier": tier,
+                "pct_difference": 0.02,
+                "same_direction": True,
+                "same_significance": True,
+                "reference_k": total,
+                "reproduced_k": matched,
+                "k_coverage": coverage,
+            },
+            "reference_pooled": {
+                "pooled": 0.25,
+                "se": 0.05,
+                "tau2": 0.01,
+                "i2": 20.0,
+            },
+            "reproduced_pooled": {
+                "pooled": 0.24,
+                "se": 0.05,
+                "tau2": 0.01,
+                "i2": 18.0,
+            },
+            "errors": {
+                "missing_pdf": 0,
+                "extraction_failure": 0,
+                "no_match": total - matched,
+                "success": matched,
+                "primary_error_source": "success" if matched == total else "no_match",
+            },
+            "cert": {
+                "review_id": review_id,
+                "classification": tier,
+            },
+        }
+
+    return [
+        record("CD100001", "Mortality", True, "reproduced", 4, 4, 1.0),
+        record("CD100001", "Hospital stay", False, "major_discrepancy", 2, 4, 0.5),
+        record("CD100002", "Readmission", True, "minor_discrepancy", 3, 4, 0.75),
+    ]
+
+
 @pytest.fixture(scope="module")
 def driver():
     d = _make_driver()
@@ -62,19 +131,7 @@ def loaded_dashboard(driver):
     with open(sample_path) as f:
         sample = json.load(f)
 
-    # Inject data via the test hook exposed by the dashboard's IIFE.
-    # window.__loadDashboardData(payload) sets the internal `data` array and
-    # calls renderAll() from inside the correct scope.
-    driver.execute_script(
-        f"""
-        try {{
-            window.__loadDashboardData({json.dumps(sample)});
-        }} catch(e) {{
-            window.__injectError = e.toString();
-        }}
-        """
-    )
-    time.sleep(1.5)  # Wait for Plotly charts to render
+    _inject_payload(driver, sample)
     return driver
 
 
@@ -186,6 +243,12 @@ def test_csv_export_button_enabled(loaded_dashboard):
     assert not btn.get_attribute("disabled"), "csvExport button should be enabled"
 
 
+def test_scope_summary_reports_primary_fallback_for_legacy_data(loaded_dashboard):
+    """Legacy summaries without is_primary markers should explain the fallback."""
+    summary = loaded_dashboard.find_element(By.ID, "scopeSummary")
+    assert "No explicit primary markers found." in summary.text
+
+
 def test_taxonomy_tab_renders(loaded_dashboard):
     """Clicking the Error Taxonomy tab shows taxonomy content."""
     tab = loaded_dashboard.find_element(By.ID, "tab-taxonomy")
@@ -240,3 +303,29 @@ def test_tab_keyboard_navigation(loaded_dashboard):
     assert tab_explorer.get_attribute("aria-selected") == "false", (
         "tab-explorer should have aria-selected=false when overview is active"
     )
+
+
+def test_scope_toggle_filters_explicit_primary_rows(loaded_dashboard):
+    """Primary-only scope should hide secondary outcomes until All outcomes is selected."""
+    _inject_payload(loaded_dashboard, _scoped_sample_payload())
+
+    scope_primary = loaded_dashboard.find_element(By.ID, "scopePrimary")
+    scope_all = loaded_dashboard.find_element(By.ID, "scopeAll")
+    summary = loaded_dashboard.find_element(By.ID, "scopeSummary")
+
+    assert scope_primary.get_attribute("aria-pressed") == "true"
+    assert "Showing 2 primary outcomes from 2 reviews." in summary.text
+
+    tab = loaded_dashboard.find_element(By.ID, "tab-explorer")
+    tab.click()
+    time.sleep(0.4)
+    rows = loaded_dashboard.find_elements(By.CSS_SELECTOR, "#explorerBody tr")
+    assert len(rows) == 2, f"Expected 2 primary rows, got {len(rows)}"
+
+    scope_all.click()
+    time.sleep(0.5)
+
+    assert scope_all.get_attribute("aria-pressed") == "true"
+    assert "Showing 3 outcomes from 2 reviews." in summary.text
+    rows = loaded_dashboard.find_elements(By.CSS_SELECTOR, "#explorerBody tr")
+    assert len(rows) == 3, f"Expected 3 rows after switching to all outcomes, got {len(rows)}"

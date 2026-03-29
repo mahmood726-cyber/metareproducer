@@ -128,6 +128,10 @@ def certify(
     ]
 
     # Seal the bundle by hashing the full provenance payload
+    # Timestamp stored outside hashed payload to preserve determinism
+    import datetime
+    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
     bundle_payload = {
         "review_id": review_id,
         "pipeline_version": pipeline_version,
@@ -142,4 +146,5 @@ def certify(
         "classification": classification,
         "provenance_chain": provenance_chain,
         "bundle_hash": bundle_hash,
+        "created_at": created_at,
     }

@@ -92,6 +92,15 @@ def pool_dl(
     k = len(yi)
     vi = [s ** 2 for s in sei]
 
+    # k=0: empty input
+    if k == 0:
+        return {
+            "method": "DL", "pooled": None, "ci_lower": None,
+            "ci_upper": None, "se": None, "tau2": 0.0, "i2": 0.0,
+            "q_stat": 0.0, "q_pvalue": 1.0, "k": 0,
+            "prediction_interval": None, "converged": True,
+        }
+
     # k=1: trivial case
     if k == 1:
         se = sei[0]
@@ -214,8 +223,7 @@ def pool_reml(
         # Fisher scoring (Viechtbauer 2005)
         # Score: derivative of REML log-likelihood w.r.t. tau2
         sum_w2_resid2 = sum(wi ** 2 * (y - mu) ** 2 for wi, y in zip(w, yi))
-        sum_w_val = sum(w)  # same as sum_w
-        score = 0.5 * (sum_w2_resid2 - sum_w_val)
+        score = 0.5 * (sum_w2_resid2 - sum_w)
 
         # Expected information
         sum_w2 = sum(wi ** 2 for wi in w)
