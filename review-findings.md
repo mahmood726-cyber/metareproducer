@@ -399,3 +399,59 @@ The implementation closely follows the design spec (v2). Key design decisions ar
 | Test gaps | 9 | Integration path for effect_inference; k=0 pool_dl; load_existing_extractions; extract_from_pdf; link_mega_data; generate_tables; swapped CI; REML non-convergence; AACT mock tests |
 
 **The P0-1 finding (field name mismatch) is the most critical issue.** It means the production pipeline has never correctly inferred effect types from parsed RDA data. All `inferred_effect_type` values would be `"unknown_ratio"`, and all studies would be treated as ratio measures. This corrupts the entire audit output. The fix is straightforward (6 line changes in effect_inference.py + test fixture updates) but must be verified with an integration test that exercises the full rda_parser -> effect_inference path.
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:106`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688038+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:110`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688062+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:112`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688066+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:116`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688069+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:125`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688073+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:152`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688081+00:00
+
+## [WARN] P1-silent-failure-sentinel
+- **Location:** `pipeline/effect_inference.py:171`
+- **Detail:** pattern matched: return "unknown_ratio"
+- **Fix hint:** Raise KeyError or a domain-specific exception instead of returning a sentinel string. Include expected-vs-received schema in the exception message.
+
+- **Source:** lessons.md#integration-contracts
+- **When:** 2026-04-15T02:01:24.688087+00:00
