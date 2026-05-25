@@ -249,12 +249,12 @@ None declared.
 
 ## References
 
-1. Baker M. 1,500 scientists lift the lid on reproducibility. Nature. 2016;533(7604):452-454.
-2. Nosek BA, Alter G, Banks GC, et al. Promoting an open research culture. Science. 2015;348(6242):1422-1425.
-3. Higgins JPT, Thomas J, Chandler J, et al., eds. Cochrane Handbook for Systematic Reviews of Interventions. Version 6.3. Cochrane; 2022.
+1. Baker M. 1,500 scientists lift the lid on reproducibility. Nature. 2016;533(7604):452-454. doi:10.1038/533452a
+2. Nosek BA, Alter G, Banks GC, et al. Promoting an open research culture. Science. 2015;348(6242):1422-1425. doi:10.1126/science.aab2374
+3. Higgins JPT, Thomas J, Chandler J, et al., eds. Cochrane Handbook for Systematic Reviews of Interventions. Version 6.3. Cochrane; 2022. doi:10.1002/9781119536604
 4. Nuijten MB, Hartgerink CHJ, van Assen MALM, Epskamp S, Wicherts JM. The prevalence of statistical reporting errors in psychology (1985-2013). Behav Res Methods. 2016;48(4):1205-1226.
 5. Maassen E, van Assen MALM, Nuijten MB, Olsson-Collentine A, Wicherts JM. Reproducibility of individual effect sizes in meta-analyses in psychology. PLoS One. 2020;15(5):e0233107.
-6. Hardwicke TE, Serghiou S, Janiaud P, et al. Calibrating the scientific ecosystem through meta-research. Annu Rev Stat Appl. 2020;7:11-37.
+6. Hardwicke TE, Serghiou S, Janiaud P, et al. Calibrating the scientific ecosystem through meta-research. Annu Rev Stat Appl. 2020;7:11-37. doi:10.1146/annurev-statistics-031219-041104
 7. [PAIRWISE70_CITATION_PLACEHOLDER]. Pairwise70: A comprehensive dataset of 501 Cochrane pairwise meta-analyses.
 8. [RCT_EXTRACTOR_CITATION_PLACEHOLDER]. RCT Extractor v10.3: Automated effect size extraction from clinical trial PDFs.
 9. ClinicalTrials.gov. REST API v2. National Library of Medicine. https://clinicaltrials.gov/data-api/about-api
@@ -262,11 +262,11 @@ None declared.
 11. Higgins JPT, Thompson SG. Quantifying heterogeneity in a meta-analysis. Stat Med. 2002;21(11):1539-1558.
 12. Viechtbauer W. Bias and efficiency of meta-analytic variance estimators in the random-effects model. J Educ Behav Stat. 2005;30(3):261-293.
 13. Viechtbauer W. Conducting meta-analyses in R with the metafor package. J Stat Softw. 2010;36(3):1-48.
-14. Piwowar H, Priem J, Lariviere V, et al. The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles. PeerJ. 2018;6:e4375.
+14. Piwowar H, Priem J, Lariviere V, et al. The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles. PeerJ. 2018;6:e4375. doi:10.7717/peerj.4375
 15. Suber P. Open Access. MIT Press; 2012.
 16. Anderson ML, Chiswell K, Peterson ED, Tasneem A, Topping J, Califf RM. Compliance with results reporting at ClinicalTrials.gov. N Engl J Med. 2015;372(11):1031-1039.
 17. Ioannidis JPA. Why most published research findings are false. PLoS Med. 2005;2(8):e124.
-18. Page MJ, McKenzie JE, Bossuyt PM, et al. The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. BMJ. 2021;372:n71.
+18. Page MJ, McKenzie JE, Bossuyt PM, et al. The PRISMA 2020 statement: an updated guideline for reporting systematic reviews. BMJ. 2021;372:n71. doi:10.1136/bmj.n71
 19. Lakens D, Hilgard J, Staaks J. On the reproducibility of meta-analyses: six practical recommendations. BMC Psychol. 2016;4:24.
 20. Gøtzsche PC, Hrobjartsson A, Maric K, Tendal B. Data extraction errors in meta-analyses that use standardized mean differences. JAMA. 2007;298(4):430-437.
 21. Jones AP, Remmington T, Williamson PR, Ashby D, Smyth RL. High prevalence but low impact of data extraction and reporting errors were found in Cochrane systematic reviews. J Clin Epidemiol. 2005;58(7):741-742.
