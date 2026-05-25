@@ -2,7 +2,6 @@
 
 import os
 import tempfile
-import pytest
 
 
 def test_hash_deterministic():

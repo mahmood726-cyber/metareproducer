@@ -1,5 +1,7 @@
-import pytest
 import math
+
+import pytest
+
 
 @pytest.fixture
 def binary_studies():

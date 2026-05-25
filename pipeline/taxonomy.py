@@ -24,8 +24,6 @@ aggregate_errors(study_errors)            -> dict
 from __future__ import annotations
 
 from collections import Counter
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Eight recognised error categories (None = success)
@@ -45,8 +43,8 @@ CATEGORIES: list[str] = [
 
 def classify_study_error(
     has_pdf: bool,
-    extraction: Optional[dict],
-) -> Optional[str]:
+    extraction: dict | None,
+) -> str | None:
     """Classify a single study extraction outcome.
 
     Parameters
@@ -77,7 +75,7 @@ def classify_study_error(
     return "no_match"
 
 
-def aggregate_errors(study_errors: list[Optional[str]]) -> dict:
+def aggregate_errors(study_errors: list[str | None]) -> dict:
     """Count error categories across all studies in a review.
 
     Parameters

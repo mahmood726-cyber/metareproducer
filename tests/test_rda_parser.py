@@ -1,6 +1,6 @@
-import pytest
-import math
 from pathlib import Path
+
+import pytest
 
 
 def test_parse_rda_returns_review(sample_rda_data):

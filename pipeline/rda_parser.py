@@ -39,7 +39,7 @@ import re
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # pyreadr is optional — only needed for load_rda / load_all_rdas
 try:
@@ -52,7 +52,7 @@ except ImportError:  # pragma: no cover
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _safe_float(val: Any) -> Optional[float]:
+def _safe_float(val: Any) -> float | None:
     """Convert val to float; return None for NaN / None / non-numeric."""
     if val is None:
         return None
@@ -63,7 +63,7 @@ def _safe_float(val: Any) -> Optional[float]:
         return None
 
 
-def _safe_int(val: Any) -> Optional[int]:
+def _safe_int(val: Any) -> int | None:
     """Convert val to int via float; return None for NaN / None / Inf."""
     f = _safe_float(val)
     if f is None or not math.isfinite(f):
@@ -147,7 +147,7 @@ def _majority_type(studies: list[dict]) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
-def parse_rows(review_id: str, rows: list[dict], min_year: Optional[int] = 2000) -> dict:
+def parse_rows(review_id: str, rows: list[dict], min_year: int | None = 2000) -> dict:
     """
     Parse a list of RDA row dicts into a CochraneReview dict.
 
@@ -265,7 +265,7 @@ def load_all_rdas(rda_dir: Path | str) -> list[dict]:
         try:
             review = load_rda(rda_file)
             reviews.append(review)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             warnings.warn(
                 f"Skipping {rda_file.name}: {exc!r}",
                 stacklevel=2,

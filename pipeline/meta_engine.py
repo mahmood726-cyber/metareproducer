@@ -13,7 +13,6 @@ Prediction intervals use t-distribution with df=k-2.
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 from scipy import stats
 
@@ -52,7 +51,7 @@ def _compute_pooled_and_ci(
     ci_upper = pooled + z_crit * se
 
     # Prediction interval (requires k >= 2)
-    prediction_interval: Optional[dict] = None
+    prediction_interval: dict | None = None
     if k >= 2:
         df_pi = max(k - 2, 1)  # k=2 uses df=1
         t_crit = stats.t.ppf(1.0 - alpha / 2.0, df=df_pi)

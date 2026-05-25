@@ -1,17 +1,18 @@
 """Selenium tests for the MetaReproducer dashboard."""
-import pytest
 import json
 import time
 from pathlib import Path
 
+import pytest
+
 try:
     from selenium import webdriver
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.chrome.options import Options
     from selenium.common.exceptions import (
-        WebDriverException,
         NoSuchElementException,
+        WebDriverException,
     )
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
     SELENIUM_AVAILABLE = True
 except ImportError:
     SELENIUM_AVAILABLE = False

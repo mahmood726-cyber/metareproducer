@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Generate BMJ manuscript tables from audit results."""
-import sys
-import json
 import csv
-from pathlib import Path
+import json
+import sys
 from collections import Counter
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -86,7 +86,7 @@ def main():
         reports = json.load(f)
     primary_reports = _primary_reports(reports)
 
-    print(f"\n=== Table 1: Study-level by effect type (primary outcome per review) ===")
+    print("\n=== Table 1: Study-level by effect type (primary outcome per review) ===")
     by_type = {}
     for r in primary_reports:
         et = r.get("inferred_effect_type", "unknown")
@@ -103,7 +103,7 @@ def main():
         print(f"  {et}: {s}/{n} strict ({100*s/max(n,1):.1f}%), "
               f"{m}/{n} moderate ({100*m/max(n,1):.1f}%)")
 
-    print(f"\n=== Table 2: Review-level classification (primary outcome per review) ===")
+    print("\n=== Table 2: Review-level classification (primary outcome per review) ===")
     classified = [r for r in primary_reports if r["review_level"] is not None]
     tiers = Counter(r["review_level"]["classification"] for r in classified)
     insufficient = sum(1 for r in primary_reports if r["review_level"] is None)
@@ -112,7 +112,7 @@ def main():
     print(f"  Major discrepancy: {tiers.get('major_discrepancy', 0)}")
     print(f"  Insufficient coverage: {insufficient}")
 
-    print(f"\n=== Table 3: Error taxonomy ===")
+    print("\n=== Table 3: Error taxonomy ===")
     error_totals = Counter()
     for r in reports:
         for k, v in r["errors"].items():

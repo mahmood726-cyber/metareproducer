@@ -23,10 +23,9 @@ A regression to the old key names will set inferred_effect_type to
 
 from __future__ import annotations
 
-from pipeline.effect_inference import infer_outcome_types, infer_effect_type
+from pipeline.effect_inference import infer_effect_type, infer_outcome_types
 from pipeline.orchestrator import _is_ratio_type
 from pipeline.rda_parser import parse_rows
-
 
 # ---------------------------------------------------------------------------
 # Binary outcome: parse_rows -> infer_outcome_types must yield OR or RR

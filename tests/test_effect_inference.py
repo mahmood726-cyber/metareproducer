@@ -1,7 +1,6 @@
 """Tests for pipeline.effect_inference — effect type inference from raw data."""
 
 import math
-import pytest
 
 
 # ---------------------------------------------------------------------------

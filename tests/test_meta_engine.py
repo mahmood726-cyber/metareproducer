@@ -1,5 +1,4 @@
 import math
-import pytest
 
 
 def test_dl_basic_pooling(binary_studies):

@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # sentinel:skip-file — hardcoded paths are fixture/registry/audit-narrative data for this repo's research workflow, not portable application configuration. Same pattern as push_all_repos.py and E156 workbook files.
 """Run MetaReproducer audit on all Pairwise70 reviews."""
-import sys
 import json
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from pipeline.rda_parser import load_all_rdas
 from pipeline import effect_extractor
 from pipeline.effect_inference import infer_outcome_types
 from pipeline.orchestrator import reproduce_review
+from pipeline.rda_parser import load_all_rdas
 
 # Also import the linking module
 sys.path.insert(0, str(Path(__file__).parent))
@@ -50,7 +50,7 @@ def main():
     all_pmids = list(set(all_pmids))
 
     try:
-        from pipeline.ctgov_extractor import get_connection, build_aact_lookup
+        from pipeline.ctgov_extractor import build_aact_lookup, get_connection
         conn = get_connection()
         if conn:
             print(f"Looking up {len(all_pmids)} PMIDs in AACT...")
@@ -114,7 +114,7 @@ def main():
     reproduced = sum(1 for r in review_classified if r["review_level"]["classification"] == "reproduced")
     major = sum(1 for r in review_classified if r["review_level"]["classification"] == "major_discrepancy")
 
-    print(f"\n=== HEADLINE RESULTS ===")
+    print("\n=== HEADLINE RESULTS ===")
     print(f"Reviews processed: {len(primary_reports)}")
     print(f"Outcomes audited: {len(all_reports)}")
     print(f"Study-level: {study_matched}/{study_total} matched within 10%")

@@ -15,14 +15,12 @@ from __future__ import annotations
 
 import math
 from collections import Counter
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Low-level helpers
 # ---------------------------------------------------------------------------
 
-def _compute_or(a: float, n1: float, c: float, n2: float) -> Optional[float]:
+def _compute_or(a: float, n1: float, c: float, n2: float) -> float | None:
     """Odds ratio = (a / (n1-a)) / (c / (n2-c)).
 
     Returns None when any cell count is zero (undefined).
@@ -34,7 +32,7 @@ def _compute_or(a: float, n1: float, c: float, n2: float) -> Optional[float]:
     return (a / b) / (c / d)
 
 
-def _compute_rr(a: float, n1: float, c: float, n2: float) -> Optional[float]:
+def _compute_rr(a: float, n1: float, c: float, n2: float) -> float | None:
     """Risk ratio = (a/n1) / (c/n2).
 
     Returns None when n1, n2, or c are zero.
@@ -56,7 +54,7 @@ def _compute_smd(
     m2: float,
     sd2: float,
     n2: float,
-) -> Optional[float]:
+) -> float | None:
     """Hedges' g with correction j = 1 - 3 / (4*(n1+n2-2) - 1).
 
     Returns None when pooled SD is zero or df <= 0.
@@ -73,7 +71,7 @@ def _compute_smd(
     return d * j
 
 
-def _matches(computed: Optional[float], observed: float, tol: float = 1e-3) -> bool:
+def _matches(computed: float | None, observed: float, tol: float = 1e-3) -> bool:
     """Relative-difference match: |computed - observed| / max(|observed|, 1e-10) < tol."""
     if computed is None:
         return False
@@ -155,7 +153,7 @@ def infer_effect_type(study: dict) -> str:
         md_val = _compute_md(m1, m2)
         matches_md = _matches(md_val, observed)
 
-        smd_val: Optional[float] = None
+        smd_val: float | None = None
         if all(v is not None for v in (sd1, n1, sd2, n2)):
             smd_val = _compute_smd(m1, sd1, n1, m2, sd2, n2)
         matches_smd = _matches(smd_val, observed)

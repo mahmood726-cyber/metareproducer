@@ -1,8 +1,9 @@
 """Tests for pipeline/orchestrator.py — Task 9."""
 
 import math
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 def test_reproduce_outcome_insufficient():
@@ -111,8 +112,9 @@ def test_reproduce_review_returns_all_outcomes_with_primary_flag():
 
 def test_se_from_ci_ratio():
     """SE back-calculation for ratio measures."""
-    from pipeline.orchestrator import se_from_ci
     from scipy import stats
+
+    from pipeline.orchestrator import se_from_ci
     z = stats.norm.ppf(0.975)
     expected = (math.log(1.02) - math.log(0.55)) / (2 * z)
     se = se_from_ci(0.75, 0.55, 1.02, is_ratio=True)
@@ -122,8 +124,9 @@ def test_se_from_ci_ratio():
 
 def test_se_from_ci_diff():
     """SE back-calculation for difference measures."""
-    from pipeline.orchestrator import se_from_ci
     from scipy import stats
+
+    from pipeline.orchestrator import se_from_ci
     z = stats.norm.ppf(0.975)
     expected = (0.1 - (-5.1)) / (2 * z)
     se = se_from_ci(-2.5, -5.1, 0.1, is_ratio=False)
@@ -133,9 +136,9 @@ def test_se_from_ci_diff():
 
 def test_full_pipeline_real_rda():
     """Integration: load real RDA, infer types, compute reference pooled."""
-    from pipeline.rda_parser import load_rda
     from pipeline.effect_inference import infer_outcome_types
     from pipeline.orchestrator import reproduce_outcome, select_primary_outcome
+    from pipeline.rda_parser import load_rda
 
     rda_dir = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
     rda_files = sorted(rda_dir.glob("*.rda"))

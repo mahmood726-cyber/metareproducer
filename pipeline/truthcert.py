@@ -25,7 +25,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 _CHUNK_SIZE = 65_536  # 64 KB read chunks for file hashing
 
 

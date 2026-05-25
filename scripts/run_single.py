@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """Run MetaReproducer on a single RDA file for debugging."""
-import sys
 import json
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from pipeline.rda_parser import load_rda
 from pipeline.effect_inference import infer_outcome_types
 from pipeline.orchestrator import reproduce_review
+from pipeline.rda_parser import load_rda
 
 
 def main():

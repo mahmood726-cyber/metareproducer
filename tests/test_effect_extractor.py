@@ -1,7 +1,5 @@
 """Tests for pipeline.effect_extractor — classify_match strict tier logic."""
 
-import math
-import pytest
 
 
 # ---------------------------------------------------------------------------

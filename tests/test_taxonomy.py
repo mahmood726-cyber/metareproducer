@@ -1,6 +1,5 @@
 """Tests for pipeline.taxonomy — error classification and aggregation."""
 
-import pytest
 
 
 def test_classify_missing_pdf():

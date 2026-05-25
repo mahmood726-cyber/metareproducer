@@ -1,6 +1,5 @@
 """Tests for pipeline.comparator — two-level reproducibility classification."""
 
-import pytest
 
 
 # ---------------------------------------------------------------------------

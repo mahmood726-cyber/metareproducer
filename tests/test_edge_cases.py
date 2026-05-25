@@ -1,9 +1,6 @@
 """Edge case and regression tests for MetaReproducer pipeline."""
 
 import math
-import pytest
-from scipy import stats
-
 
 # ---------------------------------------------------------------------------
 # Meta-engine edge cases
@@ -426,7 +423,7 @@ def test_se_from_ci_with_conf_level():
 def test_reml_nonconvergence_falls_back_to_dl():
     """Pathological data where REML scoring fails to converge within
     100 iterations should fall back to DL gracefully."""
-    from pipeline.meta_engine import pool_reml, pool_dl
+    from pipeline.meta_engine import pool_dl, pool_reml
 
     # Extremely heterogeneous data with identical SE:
     # Effects span a huge range with tiny SE, making the likelihood
@@ -453,8 +450,8 @@ def test_reml_nonconvergence_falls_back_to_dl():
 
 def test_generate_bmj_markdown_produces_all_tables(tmp_path):
     """_generate_bmj_markdown produces valid markdown with all 5 tables."""
-    import sys
     import json
+    import sys
     from pathlib import Path
 
     # We need to import from scripts/run_pipeline.py; add to path

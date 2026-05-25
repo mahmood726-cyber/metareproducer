@@ -7,20 +7,21 @@ Usage:
     python scripts/run_pipeline.py --skip-aact  # skip CT.gov AACT lookup
     python scripts/run_pipeline.py --tables-only # regenerate tables from existing summary.json
 """
-import sys
-import json
 import argparse
+import json
+import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
-from pipeline.rda_parser import load_all_rdas
+from link_mega_data import build_study_pdf_map, build_study_pmid_map, link_reviews
+
 from pipeline import effect_extractor
 from pipeline.effect_inference import infer_outcome_types
 from pipeline.orchestrator import reproduce_review
-from link_mega_data import build_study_pdf_map, build_study_pmid_map, link_reviews
+from pipeline.rda_parser import load_all_rdas
 
 RDA_DIR = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
 RESULTS_DIR = Path(__file__).parent.parent / "data" / "results"
@@ -35,8 +36,9 @@ def _primary_reports(reports):
 def _write_summary_files(reports):
     """Persist both full outcome-level and primary-outcome summaries."""
     def _json_default(obj):
-        import numpy as _np
         from pathlib import Path as _Path
+
+        import numpy as _np
         if isinstance(obj, _Path):
             return str(obj)
         if isinstance(obj, (_np.bool_, )):
@@ -98,7 +100,7 @@ def phase_2_audit(reviews, skip_aact=False):
 
         # Strategy 1: AACT PostgreSQL (requires credentials)
         try:
-            from pipeline.ctgov_extractor import get_connection, build_aact_lookup
+            from pipeline.ctgov_extractor import build_aact_lookup, get_connection
             conn = get_connection()
             if conn:
                 print(f"Looking up {len(all_pmids)} PMIDs in AACT PostgreSQL...")
@@ -112,7 +114,7 @@ def phase_2_audit(reviews, skip_aact=False):
         if aact_lookup is None:
             try:
                 from pipeline.ctgov_extractor import build_aact_lookup_via_api
-                print(f"\nFalling back to CT.gov REST API v2 (no auth required)...")
+                print("\nFalling back to CT.gov REST API v2 (no auth required)...")
                 print(f"Looking up {len(all_pmids)} unique PMIDs...")
                 aact_lookup = build_aact_lookup_via_api(all_pmids)
                 print(f"CT.gov API v2: {len(aact_lookup)} studies with effect data")
@@ -195,8 +197,8 @@ def _generate_bmj_markdown(reports):
     lines.append("")
     lines.append("## Table 1. Characteristics of included Cochrane reviews (primary outcome per review)")
     lines.append("")
-    lines.append(f"| Characteristic | Value |")
-    lines.append(f"|---|---|")
+    lines.append("| Characteristic | Value |")
+    lines.append("|---|---|")
     lines.append(f"| Reviews included | {len(primary_reports)} |")
     lines.append(f"| Total study outcomes | {sum(total_k_values)} |")
     lines.append(f"| Median studies per review (IQR) | {_median(total_k_values)} ({_q1(total_k_values)}-{_q3(total_k_values)}) |")

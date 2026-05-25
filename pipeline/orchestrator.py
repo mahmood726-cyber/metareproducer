@@ -20,12 +20,10 @@ _outcome_sort_key(outcome)  -> tuple
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 from scipy import stats
 
-from pipeline import meta_engine, comparator, taxonomy, truthcert, effect_extractor
-
+from pipeline import comparator, effect_extractor, meta_engine, taxonomy, truthcert
 
 # ---------------------------------------------------------------------------
 # Type priority for outcome selection (lower = preferred)
@@ -50,7 +48,7 @@ def se_from_ci(
     ci_upper: float,
     is_ratio: bool,
     conf_level: float = 0.95,
-) -> Optional[float]:
+) -> float | None:
     """Back-calculate SE from a point estimate and confidence interval.
 
     Parameters
@@ -126,8 +124,8 @@ def select_primary_outcome(outcomes: list[dict]) -> dict:
 def reproduce_review(
     review_id: str,
     outcomes: list[dict],
-    aact_lookup: Optional[dict] = None,
-    existing_extractions: Optional[dict] = None,
+    aact_lookup: dict | None = None,
+    existing_extractions: dict | None = None,
 ) -> list[dict]:
     """Run the full reproducibility pipeline for every outcome in a review.
 
@@ -180,8 +178,8 @@ def _is_ratio_type(effect_type: str) -> bool:
 def reproduce_outcome(
     review_id: str,
     outcome: dict,
-    aact_lookup: Optional[dict] = None,
-    existing_extractions: Optional[dict] = None,
+    aact_lookup: dict | None = None,
+    existing_extractions: dict | None = None,
 ) -> dict:
     """Run the full reproducibility pipeline for one outcome.
 
@@ -242,7 +240,7 @@ def reproduce_outcome(
         ref_yi.append(yi)
         ref_sei.append(se)
 
-    reference_pooled: Optional[dict] = None
+    reference_pooled: dict | None = None
     if ref_yi:
         reference_pooled = meta_engine.pool_dl(ref_yi, ref_sei)
 
@@ -263,7 +261,7 @@ def reproduce_outcome(
         cochrane_mean = s.get("mean")
         year = s.get("year")
 
-        extraction_result: Optional[dict] = None
+        extraction_result: dict | None = None
 
         if pdf_path is not None:
             n_with_pdf += 1
@@ -282,7 +280,7 @@ def reproduce_outcome(
 
             # Find the best match against Cochrane mean
             if raw_extractions and cochrane_mean is not None:
-                best_match: Optional[dict] = None
+                best_match: dict | None = None
                 best_rel = math.inf
 
                 for ext in raw_extractions:
@@ -405,8 +403,8 @@ def reproduce_outcome(
         repro_sei.append(se)
         k_extracted += 1
 
-    reproduced_pooled: Optional[dict] = None
-    review_level: Optional[dict] = None
+    reproduced_pooled: dict | None = None
+    review_level: dict | None = None
 
     if repro_yi and reference_pooled is not None:
         reproduced_pooled = meta_engine.pool_dl(repro_yi, repro_sei)
@@ -418,7 +416,7 @@ def reproduce_outcome(
         )
 
     # ----- (e) Error taxonomy -----
-    study_errors: list[Optional[str]] = []
+    study_errors: list[str | None] = []
     for idx, s in enumerate(studies):
         ext = extractions[idx] if idx < len(extractions) else None
         has_source = s.get("pdf_path") is not None or (ext is not None and ext.get("source") == "aact")

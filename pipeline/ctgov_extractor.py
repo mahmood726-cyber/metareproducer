@@ -37,7 +37,6 @@ import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -218,7 +217,7 @@ def match_aact_effect(
     aact_effects: list[dict],
     cochrane_mean: float,
     is_ratio: bool,
-) -> Optional[dict]:
+) -> dict | None:
     """Try to match AACT pre-computed effects against a Cochrane value.
 
     Uses classify_match from effect_extractor for consistency with the PDF
@@ -237,7 +236,7 @@ def match_aact_effect(
     """
     from pipeline.effect_extractor import classify_match
 
-    best: Optional[dict] = None
+    best: dict | None = None
     best_diff = float("inf")
 
     for eff in aact_effects:

@@ -27,7 +27,7 @@ import json
 import math
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -54,7 +54,7 @@ def _rel_diff(a: float, b: float) -> float:
     return abs(a - b) / denom
 
 
-def _tier_from_rel(rel: float, prefix: str) -> Tuple[bool, Optional[str]]:
+def _tier_from_rel(rel: float, prefix: str) -> tuple[bool, str | None]:
     """Map a relative difference to a match tier string.
 
     Returns (matched, tier_str | None).
@@ -71,11 +71,11 @@ def _tier_from_rel(rel: float, prefix: str) -> Tuple[bool, Optional[str]]:
 # ---------------------------------------------------------------------------
 
 def classify_match(
-    extracted: Optional[float],
+    extracted: float | None,
     cochrane_mean: float,
     is_ratio: bool,
-    computed_effect: Optional[float] = None,
-) -> Dict[str, Any]:
+    computed_effect: float | None = None,
+) -> dict[str, Any]:
     """Classify extracted vs Cochrane reference on the natural scale.
 
     Parameters
@@ -131,7 +131,7 @@ def classify_match(
 # load_existing_extractions
 # ---------------------------------------------------------------------------
 
-def load_existing_extractions() -> Dict[Tuple[str, int], Any]:
+def load_existing_extractions() -> dict[tuple[str, int], Any]:
     """Load pre-computed RCT Extractor results from mega_eval_v10_3_merged.jsonl.
 
     Returns a dict mapping (first_author, year) → entry dict, so downstream
@@ -147,7 +147,7 @@ def load_existing_extractions() -> Dict[Tuple[str, int], Any]:
             "correct OneDrive path."
         )
 
-    index: Dict[Tuple[str, int], Any] = {}
+    index: dict[tuple[str, int], Any] = {}
     with path.open("r", encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -170,8 +170,8 @@ def load_existing_extractions() -> Dict[Tuple[str, int], Any]:
 def get_extraction_for_study(
     study_id: str,
     year: int,
-    existing: Dict[Tuple[str, int], Any],
-) -> Optional[List[Dict[str, Any]]]:
+    existing: dict[tuple[str, int], Any],
+) -> list[dict[str, Any]] | None:
     """Look up a study's extraction result from the pre-loaded index.
 
     Parameters
@@ -198,7 +198,7 @@ def get_extraction_for_study(
     if not raw_extractions:
         return None
 
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for ext in raw_extractions:
         results.append(
             {
@@ -216,7 +216,7 @@ def get_extraction_for_study(
 # extract_from_pdf  (integration fallback)
 # ---------------------------------------------------------------------------
 
-def extract_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
+def extract_from_pdf(pdf_path: str) -> list[dict[str, Any]]:
     """Fallback: run RCT Extractor v10.3 directly on a PDF file.
 
     Imports PDFExtractionPipeline from the local rct-extractor-v2 checkout.
@@ -253,11 +253,11 @@ def extract_from_pdf(pdf_path: str) -> List[Dict[str, Any]]:
 
     try:
         result = pipeline.extract(pdf_path)
-    except Exception:  # noqa: BLE001
+    except Exception:
         return []
 
     # Normalise to standard dict list
-    extractions: List[Dict[str, Any]] = []
+    extractions: list[dict[str, Any]] = []
     raw_list = result if isinstance(result, list) else getattr(result, "extractions", [])
     for ext in raw_list:
         if hasattr(ext, "__dict__"):
