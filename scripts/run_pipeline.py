@@ -21,9 +21,10 @@ from link_mega_data import build_study_pdf_map, build_study_pmid_map, link_revie
 from pipeline import effect_extractor
 from pipeline.effect_inference import infer_outcome_types
 from pipeline.orchestrator import reproduce_review
+from pipeline.paths import resolve_pairwise_rda_dir
 from pipeline.rda_parser import load_all_rdas
 
-RDA_DIR = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
+RDA_DIR = resolve_pairwise_rda_dir(required=False)
 RESULTS_DIR = Path(__file__).parent.parent / "data" / "results"
 
 
@@ -67,7 +68,8 @@ def phase_1_load_and_link():
     print("=" * 60)
     t0 = time.time()
 
-    reviews = load_all_rdas(RDA_DIR)
+    rda_dir = resolve_pairwise_rda_dir(required=True)
+    reviews = load_all_rdas(rda_dir)
     print(f"Loaded {len(reviews)} reviews from Pairwise70")
 
     pdf_map = build_study_pdf_map()

@@ -1,8 +1,6 @@
 """Tests for pipeline/orchestrator.py — Task 9."""
 
 import math
-from pathlib import Path
-
 import pytest
 
 
@@ -138,9 +136,12 @@ def test_full_pipeline_real_rda():
     """Integration: load real RDA, infer types, compute reference pooled."""
     from pipeline.effect_inference import infer_outcome_types
     from pipeline.orchestrator import reproduce_outcome, select_primary_outcome
+    from pipeline.paths import resolve_pairwise_rda_dir
     from pipeline.rda_parser import load_rda
 
-    rda_dir = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
+    rda_dir = resolve_pairwise_rda_dir(required=False)
+    if rda_dir is None:
+        pytest.skip("Pairwise70 not available")
     rda_files = sorted(rda_dir.glob("*.rda"))
     if not rda_files:
         pytest.skip("Pairwise70 not available")

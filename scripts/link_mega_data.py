@@ -7,20 +7,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-MEGA_DIR = Path(r"C:\Users\user\rct-extractor-v2\gold_data\mega")
-PDF_DIR = MEGA_DIR / "pdfs"
+from pipeline.paths import (
+    resolve_mega_matched_path,
+    resolve_mega_pdf_dir,
+    resolve_pairwise_rda_dir,
+)
 
 
 def build_study_pdf_map() -> dict:
     """Build mapping: (first_author, year) -> pdf_path from mega_matched.jsonl."""
-    matched_path = MEGA_DIR / "mega_matched.jsonl"
-    if not matched_path.exists():
-        print(f"WARNING: {matched_path} not found")
+    matched_path = resolve_mega_matched_path(required=False)
+    if matched_path is None:
+        print("WARNING: mega_matched.jsonl not found")
         return {}
     # Build index of actual PDF files on disk: pmcid -> path
     pdf_by_pmcid = {}
-    if PDF_DIR.exists():
-        for pdf in PDF_DIR.glob("*.pdf"):
+    pdf_dir = resolve_mega_pdf_dir(required=False)
+    if pdf_dir is not None and pdf_dir.exists():
+        for pdf in pdf_dir.glob("*.pdf"):
             # Filename format: Author_Year_Year_PMCID.pdf
             parts = pdf.stem.split("_")
             # PMCID is the last part (PMCxxxxxxx)
@@ -54,9 +58,9 @@ def build_study_pmid_map() -> dict:
 
     Returns {(author_str, year_int): pmid_str} for all entries with a PMID.
     """
-    matched_path = MEGA_DIR / "mega_matched.jsonl"
-    if not matched_path.exists():
-        print(f"WARNING: {matched_path} not found")
+    matched_path = resolve_mega_matched_path(required=False)
+    if matched_path is None:
+        print("WARNING: mega_matched.jsonl not found")
         return {}
 
     mapping = {}
@@ -109,7 +113,7 @@ def link_reviews(reviews: list[dict], pdf_map: dict,
 
 if __name__ == "__main__":
     from pipeline.rda_parser import load_all_rdas
-    rda_dir = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
+    rda_dir = resolve_pairwise_rda_dir(required=True)
     reviews = load_all_rdas(rda_dir)
     pdf_map = build_study_pdf_map()
     link_reviews(reviews, pdf_map)

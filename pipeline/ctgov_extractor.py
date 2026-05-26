@@ -36,19 +36,11 @@ import os
 import time
 import urllib.parse
 import urllib.request
-from pathlib import Path
 
-from dotenv import load_dotenv
+from pipeline.paths import load_candidate_dotenvs
 
-# Load AACT credentials from the ctgov-search-strategies .env
-_env_path = Path(r"C:\Users\user\Downloads\Metaprojects\ctgov-search-strategies\.env")
-if _env_path.exists():
-    load_dotenv(_env_path)
-
-# Also try project-local .env
-_local_env = Path(__file__).resolve().parent.parent / ".env"
-if _local_env.exists():
-    load_dotenv(_local_env)
+# Load AACT credentials from standard env locations.
+load_candidate_dotenvs()
 
 
 # ---------------------------------------------------------------------------

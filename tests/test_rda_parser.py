@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 
@@ -46,8 +44,11 @@ def test_se_from_ci(sample_rda_data):
 
 def test_load_single_rda():
     """Load a real RDA file from Pairwise70."""
+    from pipeline.paths import resolve_pairwise_rda_dir
     from pipeline.rda_parser import load_rda
-    rda_dir = Path(r"C:\Users\user\OneDrive - NHS\Documents\Pairwise70\data")
+    rda_dir = resolve_pairwise_rda_dir(required=False)
+    if rda_dir is None:
+        pytest.skip("Pairwise70 RDA files not available")
     rda_files = list(rda_dir.glob("*.rda"))
     if not rda_files:
         pytest.skip("Pairwise70 RDA files not available")

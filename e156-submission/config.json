@@ -2,7 +2,7 @@
   "title": "MetaReproducer: Reproducibility Capsule for Cochrane Reproduction Audits",
   "slug": "metareproducer",
   "date": "2026-03-28",
-  "path": "C:\\MetaReproducer",
+  "path": "..",
   "type": "methods",
   "primary_estimand": "documentation proportion",
   "certainty": "moderate",

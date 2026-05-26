@@ -26,17 +26,13 @@ from __future__ import annotations
 import json
 import math
 import sys
-from pathlib import Path
 from typing import Any
+
+from pipeline.paths import resolve_mega_eval_path, resolve_rct_extractor_dir
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-
-_RCT_EXTRACTOR_PATH = r"C:\Users\user\rct-extractor-v2"
-_MEGA_EVAL_PATH = (
-    r"C:\Users\user\rct-extractor-v2\gold_data\mega\mega_eval_v10_3_merged.jsonl"
-)
 
 _TIER_5PCT = 0.05
 _TIER_10PCT = 0.10
@@ -139,13 +135,7 @@ def load_existing_extractions() -> dict[tuple[str, int], Any]:
 
     Raises FileNotFoundError if the data file is absent (integration context).
     """
-    path = Path(_MEGA_EVAL_PATH)
-    if not path.exists():
-        raise FileNotFoundError(
-            f"Mega eval file not found: {_MEGA_EVAL_PATH}\n"
-            "Run RCT Extractor v10.3 to generate this file, or mount the "
-            "correct OneDrive path."
-        )
+    path = resolve_mega_eval_path(required=True)
 
     index: dict[tuple[str, int], Any] = {}
     with path.open("r", encoding="utf-8") as fh:
@@ -233,7 +223,8 @@ def extract_from_pdf(pdf_path: str) -> list[dict[str, Any]]:
     List of extraction dicts (same schema as get_extraction_for_study).
     Returns an empty list on extraction failure.
     """
-    extractor_src = str(Path(_RCT_EXTRACTOR_PATH) / "src")
+    extractor_dir = resolve_rct_extractor_dir(required=True)
+    extractor_src = str(extractor_dir / "src")
     if extractor_src not in sys.path:
         sys.path.insert(0, extractor_src)
 
@@ -243,7 +234,7 @@ def extract_from_pdf(pdf_path: str) -> list[dict[str, Any]]:
         raise ImportError(
             f"Cannot import PDFExtractionPipeline from {extractor_src}. "
             "Ensure the rct-extractor-v2 repo is present at "
-            f"{_RCT_EXTRACTOR_PATH}."
+            f"{extractor_dir}."
         ) from exc
 
     pipeline = PDFExtractionPipeline(

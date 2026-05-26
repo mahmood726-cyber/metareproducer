@@ -7,10 +7,10 @@ Automated reproducibility audit of 465 Cochrane meta-analyses.
 Pipeline re-extracts effects from trial PDFs, re-pools, compares against Cochrane reference.
 
 ## Key paths
-- RDA files: C:/Users/user/OneDrive - NHS/Documents/Pairwise70/data/
-- RCT Extractor: C:/Users/user/rct-extractor-v2/
-- Mega gold data: C:/Users/user/rct-extractor-v2/gold_data/mega/
-- Gold standard pooled: C:/Users/user/Downloads/Metaprojects/TruthCert-Validation-Papers/data/gold_standard/
+- Pairwise70 RDA dir: auto-discovered, or set `METAREPRODUCER_RDA_DIR`
+- RCT Extractor checkout: auto-discovered, or set `METAREPRODUCER_RCT_EXTRACTOR_DIR`
+- Mega gold data dir: auto-discovered, or set `METAREPRODUCER_MEGA_DIR`
+- CT.gov credentials file: auto-discovered, or set `METAREPRODUCER_CTGOV_ENV`
 
 ## Rules
 - Use `python` not `python3` (Windows)

@@ -10,6 +10,14 @@ Can Cochrane meta-analyses be computationally reproduced when an automated pipel
 
 Open `index.html` (or `index.html`) in any modern browser. No build step.
 
+Pipeline scripts auto-discover external inputs from common workspace locations.
+Use environment overrides when needed:
+
+- `METAREPRODUCER_RDA_DIR`
+- `METAREPRODUCER_RCT_EXTRACTOR_DIR`
+- `METAREPRODUCER_MEGA_DIR`
+- `METAREPRODUCER_CTGOV_ENV`
+
 For local development:
 
 ```bash
@@ -23,7 +31,7 @@ python -m http.server 8000
 python -m pytest -q
 ```
 
-The suite under `tests/` includes 12 test file(s).
+The suite under `tests/` covers the pipeline, dashboard, and portability contracts.
 
 ## Repo layout
 
