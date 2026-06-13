@@ -8,7 +8,7 @@ Can Cochrane meta-analyses be computationally reproduced when an automated pipel
 
 ## Run
 
-Open `index.html` (or `index.html`) in any modern browser. No build step.
+Open `index.html` (landing page) or `dashboard/index.html` (the interactive dashboard) in any modern browser. No build step.
 
 Pipeline scripts auto-discover external inputs from common workspace locations.
 Use environment overrides when needed:
@@ -37,7 +37,7 @@ The suite under `tests/` covers the pipeline, dashboard, and portability contrac
 
 | Path | Purpose |
 |---|---|
-| `index.html` | the dashboard (main artifact) |
+| `dashboard/index.html` | the interactive dashboard (main artifact) |
 | `index.html` | landing page |
 | `tests/` | pytest tests |
 | `e156-submission/` | E156 micro-paper bundle |
