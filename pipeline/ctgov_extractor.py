@@ -443,8 +443,8 @@ def _api_fetch_analyses(
                     effects.append({
                         "param_type": param_type,
                         "point_estimate": pv,
-                        "ci_lower": float(ci_lo) if ci_lo else None,
-                        "ci_upper": float(ci_hi) if ci_hi else None,
+                        "ci_lower": float(ci_lo) if ci_lo not in (None, "") else None,
+                        "ci_upper": float(ci_hi) if ci_hi not in (None, "") else None,
                         "method": analysis.get("statisticalMethod", ""),
                     })
             if effects:

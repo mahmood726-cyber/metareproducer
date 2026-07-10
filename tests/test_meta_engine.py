@@ -68,6 +68,65 @@ def test_reml_homogeneous(homogeneous_studies):
     assert abs(result["tau2"]) < 1e-6
 
 
+# Fixed heterogeneous reference dataset. The REML tau2 below was computed
+# by directly maximizing the restricted log-likelihood
+# l_R(tau2) = -0.5*sum(log(v_i+tau2)) - 0.5*log(sum w_i)
+#             - 0.5*sum(w_i*(y_i-mu)^2)
+# (scipy bounded minimize_scalar, xatol=1e-12) AND independently reproduced
+# by the Fisher-scoring score 0.5*(sum w^2 r^2 - sum w + sum w^2 / sum w).
+# The ML fixed point on the same data is 0.00141496, so this anchor also
+# guards against silently shipping ML in place of REML.
+_HET_YI = [0.10, 0.30, 0.35, 0.65, 0.45, 0.15]
+_HET_SEI = [0.10, 0.12, 0.11, 0.30, 0.20, 0.09]
+_HET_REML_TAU2 = 0.005678043561191636
+_HET_ML_TAU2 = 0.001414960656512601
+
+
+def test_reml_tau2_matches_reference():
+    """REML tau2 matches the directly-optimized restricted-likelihood value."""
+    from pipeline.meta_engine import pool_reml
+    result = pool_reml(yi=_HET_YI, sei=_HET_SEI)
+    assert result["converged"] is True
+    assert abs(result["tau2"] - _HET_REML_TAU2) < 1e-6
+
+
+def test_reml_is_not_ml_and_differs_from_dl():
+    """REML tau2 must be distinct from both the ML fixed point and DL.
+
+    Dropping the score's +sum(w^2)/sum(w) adjustment collapses REML onto the
+    ML value (0.00141496); this guards against that regression. It also
+    confirms REML and DL are genuinely different estimators on this data
+    (their ordering is not universal, so we only assert they differ).
+    """
+    from pipeline.meta_engine import pool_dl, pool_reml
+    reml = pool_reml(yi=_HET_YI, sei=_HET_SEI)
+    dl = pool_dl(yi=_HET_YI, sei=_HET_SEI)
+    # REML is materially larger than the ML value, not merely equal to it.
+    assert reml["tau2"] - _HET_ML_TAU2 > 1e-4
+    assert abs(reml["tau2"] - dl["tau2"]) > 1e-4
+
+
+def test_reml_empty_input():
+    """k=0: pool_reml returns a well-formed empty result."""
+    from pipeline.meta_engine import pool_reml
+    result = pool_reml(yi=[], sei=[])
+    assert result["method"] == "REML"
+    assert result["k"] == 0
+    assert result["pooled"] is None
+    assert result["tau2"] == 0.0
+
+
+def test_reml_single_study():
+    """k=1: pool_reml matches the trivial single-study case."""
+    from pipeline.meta_engine import pool_reml
+    result = pool_reml(yi=[math.log(0.75)], sei=[0.20])
+    assert result["method"] == "REML"
+    assert result["k"] == 1
+    assert abs(result["pooled"] - math.log(0.75)) < 1e-10
+    assert result["tau2"] == 0.0
+    assert result["prediction_interval"] is None
+
+
 def test_dl_c_zero_guard():
     """Guard for edge case with identical SE values."""
     from pipeline.meta_engine import pool_dl

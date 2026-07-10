@@ -174,14 +174,16 @@ def pool_reml(
 ) -> dict:
     """REML random-effects meta-analysis via Fisher scoring.
 
-    Uses the correct REML Fisher scoring formula from Viechtbauer (2005):
-        score = 0.5 * (sum(w_i^2 * (y_i - mu)^2) - sum(w_i))
+    Uses the REML Fisher scoring formula from Viechtbauer (2005):
+        score = 0.5 * (sum(w_i^2 * (y_i - mu)^2) - sum(w_i)
+                       + sum(w_i^2) / sum(w_i))
         information = 0.5 * sum(w_i^2)
         delta = score / information
         tau2_new = max(0, tau2 + delta)
 
-    CRITICAL: The score numerator is sum(w_i^2 * (y_i - mu)^2) - sum(w_i),
-    NOT - sum(w_i^2 * v_i).
+    CRITICAL: The trailing + sum(w_i^2)/sum(w_i) term is the REML
+    determinant adjustment for estimating the pooled mean mu. Omitting it
+    collapses the score to ordinary ML and underestimates tau2.
 
     Falls back to DL if REML does not converge.
 
@@ -199,6 +201,13 @@ def pool_reml(
     """
     k = len(yi)
     vi = [s ** 2 for s in sei]
+
+    # k=0: empty input — defer to DL's well-formed empty result (avoids a
+    # divide-by-zero in the Fisher-scoring loop below).
+    if k == 0:
+        dl_result = pool_dl(yi, sei, conf_level)
+        dl_result["method"] = "REML"
+        return dl_result
 
     # k=1: trivial case — same as DL
     if k == 1:
@@ -222,10 +231,12 @@ def pool_reml(
         # Fisher scoring (Viechtbauer 2005)
         # Score: derivative of REML log-likelihood w.r.t. tau2
         sum_w2_resid2 = sum(wi ** 2 * (y - mu) ** 2 for wi, y in zip(w, yi))
-        score = 0.5 * (sum_w2_resid2 - sum_w)
+        sum_w2 = sum(wi ** 2 for wi in w)
+        # REML score: the +sum_w2/sum_w term is the determinant adjustment
+        # for estimating mu; without it this is the ML score.
+        score = 0.5 * (sum_w2_resid2 - sum_w + sum_w2 / sum_w)
 
         # Expected information
-        sum_w2 = sum(wi ** 2 for wi in w)
         info = 0.5 * sum_w2
 
         if info == 0:

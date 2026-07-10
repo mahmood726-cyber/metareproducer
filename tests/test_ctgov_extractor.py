@@ -231,6 +231,36 @@ def test_api_fetch_analyses_empty():
     assert result == {}
 
 
+def test_api_fetch_analyses_preserves_zero_ci_bound(monkeypatch):
+    """A legitimate CI bound of exactly 0.0 must not be coerced to None.
+
+    Regression for the truthiness bug `float(ci_lo) if ci_lo else None`,
+    which dropped 0.0 (valid for difference measures). Also confirms an
+    empty-string bound still maps to None without raising.
+    """
+    from pipeline import ctgov_extractor
+
+    fake_study = {
+        "protocolSection": {"identificationModule": {"nctId": "NCT00000001"}},
+        "resultsSection": {"outcomeMeasuresModule": {"outcomeMeasures": [
+            {"analyses": [{
+                "paramType": "Mean Difference",
+                "paramValue": "1.5",
+                "ciLowerLimit": 0.0,
+                "ciUpperLimit": "",
+                "statisticalMethod": "ANCOVA",
+            }]}
+        ]}},
+    }
+    monkeypatch.setattr(
+        ctgov_extractor, "_api_get", lambda url: {"studies": [fake_study]}
+    )
+    result = ctgov_extractor._api_fetch_analyses(["NCT00000001"])
+    effect = result["NCT00000001"][0]
+    assert effect["ci_lower"] == 0.0
+    assert effect["ci_upper"] is None
+
+
 @pytest.mark.skipif(
     not pytest.importorskip("urllib.request", reason="no network"),
     reason="network access required",
