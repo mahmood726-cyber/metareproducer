@@ -38,12 +38,37 @@ def test_dl_single_study():
 
 
 def test_dl_two_studies():
-    """k=2: tau2 can be computed, PI uses t-distribution with df=1."""
+    """k=2: tau² is estimable, but t_(k-2) PI has zero df and is undefined."""
     from pipeline.meta_engine import pool_dl
     result = pool_dl(yi=[math.log(0.5), math.log(1.5)], sei=[0.2, 0.2])
     assert result["k"] == 2
     assert result["tau2"] > 0
-    assert result["prediction_interval"] is not None
+    assert result["prediction_interval"] is None
+
+
+def test_reml_two_studies_has_no_prediction_interval():
+    """The k=2 PI validity boundary applies to REML as well as DL."""
+    from pipeline.meta_engine import pool_reml
+    result = pool_reml(yi=[-0.30, 0.15], sei=[0.1, 0.2])
+    assert result["k"] == 2
+    assert result["prediction_interval"] is None
+
+
+def test_three_study_prediction_interval_uses_k_minus_2_df():
+    """At k=3, PI must use df=1, not the normal or arbitrary fallback."""
+    from scipy.stats import t
+    from pipeline.meta_engine import pool_dl
+    result = pool_dl(yi=[-0.5, 0.0, 0.4], sei=[0.20, 0.15, 0.25])
+    assert result["k"] == 3
+    pi = result["prediction_interval"]
+    assert pi is not None
+    expected_halfwidth = t.ppf(0.975, df=1) * math.sqrt(
+        result["tau2"] + result["se"] ** 2
+    )
+    assert math.isclose(result["pooled"] - pi["pi_lower"], expected_halfwidth,
+                        rel_tol=1e-12, abs_tol=1e-12)
+    assert math.isclose(pi["pi_upper"] - result["pooled"], expected_halfwidth,
+                        rel_tol=1e-12, abs_tol=1e-12)
 
 
 def test_reml_basic(binary_studies):

@@ -46,3 +46,14 @@ The suite under `tests/` covers the pipeline, dashboard, and portability contrac
 ## License
 
 See `LICENSE` (MIT).
+
+
+## Prediction interval boundary
+
+The DL and REML pooling functions use a prespecified t-distribution
+prediction interval with `df = k - 2`. It is **not defined for k=2**:
+`prediction_interval` is `null`/`None` until at least three studies are
+available. The point estimate and pooled-effect confidence interval remain
+available at k=2. Do not interpret a missing PI as a zero-width interval or
+claim that heterogeneity is absent; this boundary is a mathematical limitation
+of the selected interval procedure.
