@@ -7,7 +7,7 @@ Implements:
 - pool(): Convenience function running both methods
 
 All confidence intervals use scipy.stats for critical values (no hardcoded z=1.96).
-Prediction intervals use t-distribution with df=k-2.
+Prediction intervals use a t-distribution with df=k-2 and are undefined for k<3.
 """
 
 from __future__ import annotations
@@ -50,10 +50,12 @@ def _compute_pooled_and_ci(
     ci_lower = pooled - z_crit * se
     ci_upper = pooled + z_crit * se
 
-    # Prediction interval (requires k >= 2)
+    # The prespecified t_(k-2) prediction interval has zero degrees of
+    # freedom at k=2. Do not silently substitute df=1: report unavailable
+    # until at least three studies contribute to the estimate.
     prediction_interval: dict | None = None
-    if k >= 2:
-        df_pi = max(k - 2, 1)  # k=2 uses df=1
+    if k >= 3:
+        df_pi = k - 2
         t_crit = stats.t.ppf(1.0 - alpha / 2.0, df=df_pi)
         pi_se = math.sqrt(tau2 + se ** 2)
         prediction_interval = {
